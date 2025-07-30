@@ -203,42 +203,22 @@ $(document).ready(function () {
 
   // Open Leave Credit Action modal
   // Handler for clicking a leave-credit box
+  // Open the Leave Credit Action modal instead of Add Credit directly
   $(document).on("click", ".leave-credit-box.clickable", function () {
     const $box = $(this);
+    const leaveTypeId = $box.data("leave-type-id");
+    const leaveType = $box.data("leave-type");
+    const creditId = $box.data("credit-id");
+    const employeeId = $box.data("employee-id");
 
-    // 1) Grab the leave-type info from the box you clicked
-    const leaveTypeName = $box.attr("data-leave-type");
-    const leaveTypeId = $box.attr("data-leave-type-id");
-    const employeeId = $box.attr("data-employee-id");
+    // Fill hidden inputs in the action modal
+    $("#modalEmployeeId").val(employeeId);
+    $("#modalLeaveType").val(leaveTypeId);
+    $("#modalCreditId").val(creditId);
+    $("#leaveTypeName").text(leaveType);
 
-    // 2) Reset the Add Leave Credit form completely
-    const $form = $("#addLeaveCreditForm");
-    $form[0].reset();
-
-    // 3) Pre-fill the fields we want to keep:
-    $("#credit_employee_id").val(employeeId);
-    $("#credit_leave_type_id").val(leaveTypeId);
-    $("#credit_leave_type_name").val(leaveTypeName);
-
-    // 4) Show the modal
-    $("#leaveCreditActionModal").modal("hide"); // in case it's open
-    $("#addLeaveCreditModal").modal("show");
-  });
-
-  // Submit Add Credit
-  $("#addLeaveCreditForm").submit(function (e) {
-    e.preventDefault();
-    $.post(
-      "/depedlu_lms/users/add_leave_credit.php",
-      $(this).serialize(),
-      function (response) {
-        alert(response.message);
-        if (response.success) {
-          reloadEmployeeDetails($("#credit_employee_id").val());
-        }
-      },
-      "json"
-    ).fail(() => alert("Error adding leave credit."));
+    // Show the modal with the two choices
+    $("#leaveCreditActionModal").modal("show");
   });
 
   // ------------ Manage Leave Filter ------------
@@ -393,7 +373,26 @@ $(document).ready(function () {
     $("body").removeClass("modal-open");
     $(".modal-backdrop").remove();
   });
+
+  $(document).on("click", ".leave-credit-box.clickable", function () {
+    const $box = $(this);
+    const leaveTypeId = $box.data("leave-type-id");
+    const leaveType = $box.data("leave-type");
+    const creditId = $box.data("credit-id");
+    const employeeId = $box.data("employee-id");
+
+    // Fill hidden inputs in the action modal
+    $("#modalEmployeeId").val(employeeId);
+    $("#modalLeaveType").val(leaveTypeId);
+    $("#modalCreditId").val(creditId);
+    $("#leaveTypeName").text(leaveType);
+
+    // Show the modal with the two choices
+    $("#leaveCreditActionModal").modal("show");
+  });
 }); // end of $(document).ready()
+
+// Open the Leave Credit Action modal instead of Add Credit directly
 
 // Sidebar toggle
 function toggleSidebar() {

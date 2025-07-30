@@ -1,3 +1,4 @@
+// Mapping of leave types to their required form fields
 const leaveTypeFieldsMap = {
   "Vacation Leave": ["date_from", "date_to", "number_of_days", "place_spent"],
   "Sick Leave": [
@@ -68,7 +69,7 @@ const leaveTypeFieldsMap = {
   ],
 };
 
-// Utility to build fields
+// Utility to build a form field HTML snippet based on its name
 function buildField(field) {
   const label = field
     .replace(/_/g, " ")
@@ -115,7 +116,7 @@ function buildField(field) {
   }
 }
 
-// Show modal and dynamically build fields
+// Builds and shows the Apply Leave modal with dynamic fields
 function openApplyLeaveModal(employeeId, leaveTypeName, leaveTypeId) {
   console.log(
     "Opening modal for leave type:",
@@ -140,35 +141,27 @@ function openApplyLeaveModal(employeeId, leaveTypeName, leaveTypeId) {
   // Reset status to Pending
   $("#apply_leave_status").val("Pending");
 
+  // Hide the action modal and show the apply-leave modal
   $("#leaveCreditActionModal").modal("hide");
   $("#applyLeaveModal").modal("show");
 }
 
-// Button trigger from leave credit box
+// Handler for "Apply Leave" button in the action modal
 $(document).on("click", "#applyLeaveBtn", function () {
   const employeeId = $("#modalEmployeeId").val();
-  const leaveTypeName = $("#modalLeaveType").val();
+  const leaveTypeId = $("#modalLeaveType").val();
+  const leaveTypeName = $("#leaveTypeName").text().trim(); // human-readable label
 
-  const creditBox = $(".leave-credit-box").filter(function () {
-    return (
-      $(this).data("leave-type") === leaveTypeName &&
-      $(this).data("employee-id") == employeeId
-    );
-  });
-
-  const leaveTypeId = creditBox.data("leave-type-id");
   openApplyLeaveModal(employeeId, leaveTypeName, leaveTypeId);
 });
 
-// Submit form via AJAX
-// Submit form via AJAX
+// Submit the Apply Leave form via AJAX
 $("#applyLeaveForm").submit(function (e) {
   e.preventDefault();
 
   const form = $("#applyLeaveForm")[0];
   const formData = new FormData(form);
 
-  // DEBUG: log each field
   console.log("Submitting form with the following data:");
   for (let [key, value] of formData.entries()) {
     console.log(`${key}:`, value);
@@ -195,6 +188,7 @@ $("#applyLeaveForm").submit(function (e) {
 
         const employeeId = $("#apply_leave_employee_id").val();
         if (employeeId) {
+          // Reload employee details panel
           $.ajax({
             url: "/depedlu_lms/users/get_employee_details.php",
             method: "GET",
@@ -202,10 +196,8 @@ $("#applyLeaveForm").submit(function (e) {
             success: function (detailsHtml) {
               $("#employeeDetailsContainer")
                 .html(
-                  `
-                  <button id="backToEmployeeList" class="btn btn-secondary mb-3">← Back to Employee List</button>
-                  ${detailsHtml}
-                `
+                  `<button id="backToEmployeeList" class="btn btn-secondary mb-3">← Back to Employee List</button>
+                   ${detailsHtml}`
                 )
                 .show();
               $("#employeesTableContainer").hide();
@@ -214,6 +206,7 @@ $("#applyLeaveForm").submit(function (e) {
           });
         }
 
+        // If Manage Leave tab is active, reload its table
         if (
           $("#manage_leave").is(":visible") &&
           typeof loadLeaveApplicationsTable === "function"

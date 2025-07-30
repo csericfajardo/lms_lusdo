@@ -402,12 +402,14 @@ $stmt->close();
         <p>(Reports UI to be implemented here)</p>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <!-- Popper.js for Bootstrap 4 tooltips, popovers & modals -->
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="../js/hr_dashboard_script.js"></script>
 <script src="../js/applyleave_script.js"></script>
+<script src="../js/hr_dashboard_script.js"></script>
+
 
 
 
