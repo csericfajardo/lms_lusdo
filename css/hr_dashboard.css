@@ -1,45 +1,105 @@
+/* ==============================
+   hr_dashboard.css (Final)
+   ============================== */
+
+/* ------------------------------------------------
+   1) Color Palette Variables
+   ------------------------------------------------ */
+:root {
+    --dark: #393e46;
+    --accent: #0092ca;
+    --light: #EEEEEE;
+    /* Pastel variants */
+    --accent-light: #b3e5fc;
+    --success-light: #c8e6c9;
+    --warning-light: #fff9c4;
+    --danger-light: #ffcccb;
+    --cancelled-light: #eceff1;
+}
+
+/* ------------------------------------------------
+   2) Global Styles
+   ------------------------------------------------ */
+html {
+    font-size: 16px;
+    /* 1rem = 16px */
+}
+
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
-}
-.employee-details-container {
-    max-width: 100%;
-    /* wide container */
-    margin: 20px auto;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    background: var(--light);
+    color: var(--dark);
 }
 
-.employee-details-container .btn {
-    min-width: 70px;
+* {
+    box-sizing: border-box;
 }
 
+/* ------------------------------------------------
+   3) Sidebar
+   ------------------------------------------------ */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100%;
     width: 250px;
-    background: #333;
-    color: white;
-    overflow-y: auto;
+    background: var(--dark);
+    color: var(--light);
     padding-top: 20px;
+    overflow-y: auto;
     z-index: 1050;
-    /* Add this or increase it */
 }
 
 .sidebar a {
     display: block;
-    color: white;
-    padding: 10px 20px;
+    color: var(--light);
+    padding: 12px 20px;
     text-decoration: none;
+    transition: background 0.2s;
 }
 
 .sidebar a:hover {
-    background: #444;
+    background: var(--accent);
 }
 
+.sidebar-toggle {
+    display: none;
+    background: var(--dark);
+    color: var(--light);
+    border: none;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        left: -250px;
+        transition: left 0.3s;
+    }
+
+    .sidebar.show {
+        left: 0;
+    }
+
+    .sidebar-toggle {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        text-align: left;
+        font-size: 1.125rem;
+    }
+
+    .content {
+        margin-left: 0 !important;
+    }
+}
+
+/* ------------------------------------------------
+   4) Main Content & Cards
+   ------------------------------------------------ */
 .content {
     margin-left: 250px;
     padding: 20px;
@@ -52,113 +112,325 @@ body {
 }
 
 .card {
-    background: #fff;
+    background: var(--light);
+    border: 2px solid var(--accent);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
     width: 250px;
     text-align: center;
 }
 
-.sidebar-toggle {
-    display: none;
+.card h3 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--accent);
 }
 
-/* Responsive tweaks */
-@media (max-width: 768px) {
-    .sidebar {
-        left: -250px;
-        transition: left 0.3s;
-    }
-
-    .sidebar.show {
-        left: 0;
-    }
-
-    .content {
-        margin-left: 0;
-        padding: 20px;
-    }
-
-    .sidebar-toggle {
-        display: block;
-        background: #333;
-        color: white;
-        border: none;
-        font-size: 18px;
-        padding: 10px;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-    }
+.card a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 1rem;
 }
+
+.card a:hover {
+    text-decoration: underline;
+}
+
+/* ------------------------------------------------
+   5) Typography
+   ------------------------------------------------ */
+h1,
+.card h3 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.btn,
+label {
+    font-size: 1rem;
+}
+
+/* ------------------------------------------------
+   6) Buttons
+   ------------------------------------------------ */
+.btn-primary {
+    background: var(--accent);
+    border: 2px solid var(--accent);
+    color: var(--light);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--dark);
+    border-color: var(--dark);
+}
+
+.btn-success {
+    background: var(--dark);
+    border: 2px solid var(--dark);
+    color: var(--light);
+}
+
+.btn-success:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-secondary {
+    background: var(--light);
+    border: 2px solid var(--dark);
+    color: var(--dark);
+}
+
+.btn-secondary:hover {
+    background: var(--dark);
+    color: var(--light);
+}
+
+/* Personal Details Edit/Delete */
+.action-buttons .btn-warning {
+    background: var(--light);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    transition: background 0.2s;
+}
+
+.action-buttons .btn-warning:hover {
+    background: var(--accent-light);
+    color: var(--dark);
+}
+
+.action-buttons .btn-danger {
+    background: var(--light);
+    border: 2px solid #f73444;
+    color: #f73444;
+}
+
+.action-buttons .btn-danger:hover {
+    background: var(--danger-light);
+    color: var(--dark);
+}
+
+/* ------------------------------------------------
+   7) Tables
+   ------------------------------------------------ */
+/* Use Inter 400 for table headers */
+.table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    /* or 0.9375rem if you want them a touch smaller */
+    color: var(--dark);
+    background: var(--dark);
+    color: var(--light);
+    text-transform: none;
+    /* remove any uppercase transforms */
+}
+
+.table td {
+    background: var(--light);
+    color: var(--dark);
+    font-size: 1rem;
+}
+
+/* ------------------------------------------------
+   8) Leave Credit Boxes
+   ------------------------------------------------ */
 .leave-credits-container {
     margin-top: 20px;
 }
 
-.leave-credit-boxes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
 .leave-credit-box {
-    width: 170px;
-    height: 130px;
-    border: 1px solid #ccc;
+    background: var(--light);
+    border: 2px solid var(--accent);
     border-radius: 8px;
     padding: 15px;
-    background: #f9f9f9;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    width: 170px;
+    height: 130px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     text-align: center;
+    transition: transform 0.2s, background 0.2s;
+    cursor: pointer;
 }
 
-.leave-credit-box h5 {
-    margin-bottom: 10px;
-    font-weight: 700;
-    color: #007bff;
+.leave-credit-box:hover {
+    transform: translateY(-4px);
+    background: #f0f8ff;
+}
+
+.leave-credit-box h5,
+.leave-credit-box h6 {
+    font-size: 1.125rem;
+    color: var(--accent);
+    margin-bottom: 8px;
 }
 
 .leave-credit-box p {
-    margin: 3px 0;
-}
-.leave-credit-box.clickable {
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    width: 170px;
-    height: 130px;
+    font-size: 0.875rem;
+    margin: 2px 0;
+    color: var(--dark);
 }
 
-.leave-credit-box.clickable:hover {
-    transform: scale(1.03);
-    background-color: #e9ecef;
-}
-
+/* ------------------------------------------------
+   9) Status Cells (Pastel)
+   ------------------------------------------------ */
 .status-cell.pending {
-    background-color: #fbeb0b;
+    background: var(--warning-light);
+    color: var(--dark);
 }
 
 .status-cell.approved {
-    background-color: #05d736;
+    background: var(--success-light);
+    color: var(--dark);
 }
 
 .status-cell.rejected {
-    background-color: #f73444;
+    background: var(--danger-light);
+    color: var(--dark);
 }
 
 .status-cell.cancelled {
-    background-color: #2f3a3c;
+    background: var(--cancelled-light);
+    color: var(--dark);
 }
 
 .status-cell select {
     width: 100%;
     padding: 4px;
+}
+
+/* ------------------------------------------------
+   10) Modals
+   ------------------------------------------------ */
+.modal .form-group {
+    margin-bottom: 0.5rem !important;
+}
+
+.modal .form-group>label {
+    margin-bottom: 0.25rem;
+}
+
+.modal-body {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Faster, smooth fade + slide */
+/* Pop-up scale + fade modal effect */
+.fade .modal-dialog {
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out !important;
+    transform: scale(0.8);
+    opacity: 0;
+}
+
+.fade.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Tweak backdrop to match speed */
+.fade .modal-backdrop {
+    transition: opacity 0.15s linear !important;
+}
+/* ─── Personal Details Table Styling ───────────────────────────────────── */
+.employee-details table {
+    width: 100%;
+    border: 1px solid #ddd;
+    /* outer light border */
+    border-radius: 6px;
+    /* slight rounding */
+    border-collapse: collapse;
+    /* collapse inner borders */
+    overflow: hidden;
+    /* clip the rounded corners */
+}
+
+.employee-details table th,
+.employee-details table td {
+    
+        /* or whatever fixed width you prefer */
+    padding: 8px 12px;
+    /* comfortable padding */
+    border-bottom: 1px solid #878484;
+    /* subtle row divider */
+    text-align: left;
+    /* left-align everything */
+}
+
+.employee-details table th {
+    width: 20px;
+    /* a soft accent background */
+    font-weight: 500;
+}
+
+/* Remove the divider on the last row */
+.employee-details table tr:last-child th,
+.employee-details table tr:last-child td {
+    border-bottom: none;
+}
+/* ------------------------------------------------
+   11) Mobile Full-Width & Responsive Type
+   ------------------------------------------------ */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0 !important;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .tab-content {
+        width: 100% !important;
+        margin: 0 !important;
+        font-size: 0.875rem;
+    }
+
+    html {
+        font-size: 14px;
+    }
+
+    h1,
+    .card h3 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    .btn,
+    label {
+        font-size: 0.9375rem;
+    }
+
+    .leave-credit-box h5,
+    .leave-credit-box h6 {
+        font-size: 1rem;
+    }
+
+    .leave-credit-box p {
+        font-size: 0.8125rem;
+    }
 }

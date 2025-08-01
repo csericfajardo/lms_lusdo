@@ -116,56 +116,104 @@ function buildField(field) {
   }
 }
 
-// Builds and shows the Apply Leave modal with dynamic fields
+// Utility to build a date input (used for CTO)
+function buildDateField(name) {
+  const label = name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+  return `
+    <div class="form-group">
+      <label>${label}</label>
+      <input type="date" class="form-control" name="${name}" required>
+    </div>`;
+}
+
+// Utility to build a number input (used for CTO)
+function buildNumberField(name) {
+  return `
+    <div class="form-group">
+      <label>Number of Days</label>
+      <input type="number" step="0.01" min="0" class="form-control" name="${name}" required>
+    </div>`;
+}
+
+// Builds and shows the Apply Leave modal, branching for CTO vs. others
 function openApplyLeaveModal(employeeId, leaveTypeName, leaveTypeId) {
-  console.log(
-    "Opening modal for leave type:",
-    leaveTypeName,
-    "ID:",
-    leaveTypeId
-  );
-
-  const fields = leaveTypeFieldsMap[leaveTypeName] || [];
-  $("#applyLeaveModalFields").html(""); // Clear previous fields
-
-  fields.forEach((field) => {
-    const fieldHtml = buildField(field);
-    $("#applyLeaveModalFields").append(fieldHtml);
-  });
-
-  // Set hidden values
+  // Clear previous fields
+  $("#applyLeaveModalFields").empty();
   $("#apply_leave_employee_id").val(employeeId);
   $("#apply_leave_type_id").val(leaveTypeId);
   $("#apply_leave_type_name").val(leaveTypeName);
 
-  // Reset status to Pending
-  $("#apply_leave_status").val("Pending");
+  // CTO case
+  if (parseInt(leaveTypeId, 10) === 12) {
+    $.getJSON("/depedlu_lms/users/get_cto_earnings.php", {
+      employee_id: employeeId,
+    })
+      .done((res) => {
+        // Determine where the array lives
+        let ctos = [];
+        if (res && Array.isArray(res.data)) {
+          ctos = res.data;
+        } else if (Array.isArray(res)) {
+          ctos = res;
+        } else {
+          console.error("Unexpected CTO payload:", res);
+          alert(res.message || "Failed to load CTO credits.");
+          return;
+        }
 
-  // Hide the action modal and show the apply-leave modal
-  $("#leaveCreditActionModal").modal("hide");
-  $("#applyLeaveModal").modal("show");
+        if (ctos.length === 0) {
+          alert("No CTO credits available to apply.");
+          return;
+        }
+
+        // Build the select + fields
+        let html = `
+          <div class="form-group">
+            <label>Select CTO Credit</label>
+            <select class="form-control" name="cto_id" required>
+              <option value="">-- choose one --</option>`;
+        ctos.forEach((c) => {
+          const balance = (c.days_earned - c.days_used).toFixed(2);
+          html += `<option value="${c.cto_id}">${c.source} (Balance: ${balance} days)</option>`;
+        });
+        html += `</select></div>`;
+        html += buildDateField("date_from");
+        html += buildDateField("date_to");
+        html += buildNumberField("number_of_days");
+
+        $("#applyLeaveModalFields").html(html);
+        $("#leaveCreditActionModal").modal("hide");
+        $("#applyLeaveModal").modal("show");
+      })
+      .fail(() => {
+        alert("Could not load Compensatory Time-Off credits.");
+      });
+  }
+  // Non-CTO case
+  else {
+    const fields = leaveTypeFieldsMap[leaveTypeName] || [];
+    fields.forEach((field) => {
+      $("#applyLeaveModalFields").append(buildField(field));
+    });
+    $("#leaveCreditActionModal").modal("hide");
+    $("#applyLeaveModal").modal("show");
+  }
 }
 
-// Handler for "Apply Leave" button in the action modal
+// Handler for the “Apply Leave” button in the action modal
 $(document).on("click", "#applyLeaveBtn", function () {
   const employeeId = $("#modalEmployeeId").val();
   const leaveTypeId = $("#modalLeaveType").val();
-  const leaveTypeName = $("#leaveTypeName").text().trim(); // human-readable label
-
+  const leaveTypeName = $("#leaveTypeName").text().trim();
   openApplyLeaveModal(employeeId, leaveTypeName, leaveTypeId);
 });
 
 // Submit the Apply Leave form via AJAX
 $("#applyLeaveForm").submit(function (e) {
   e.preventDefault();
-
-  const form = $("#applyLeaveForm")[0];
-  const formData = new FormData(form);
-
-  console.log("Submitting form with the following data:");
-  for (let [key, value] of formData.entries()) {
-    console.log(`${key}:`, value);
-  }
+  const formData = new FormData(this);
 
   $.ajax({
     url: "/depedlu_lms/users/apply_leave.php",
@@ -173,51 +221,24 @@ $("#applyLeaveForm").submit(function (e) {
     data: formData,
     contentType: false,
     processData: false,
-    success: function (response) {
-      console.log("Server response:", response);
-
-      if (!response.success && response.debug) {
-        console.warn("Debug Info from PHP:", response.debug);
-      }
-
-      alert(response.message);
-      if (response.success) {
+    success: function (res) {
+      if (!res.success) console.warn("Apply Leave debug:", res);
+      alert(res.message);
+      if (res.success) {
         $("#applyLeaveForm")[0].reset();
-        $("#applyLeaveModalFields").html("");
+        $("#applyLeaveModalFields").empty();
         $("#applyLeaveModal").modal("hide");
-
-        const employeeId = $("#apply_leave_employee_id").val();
-        if (employeeId) {
-          // Reload employee details panel
-          $.ajax({
-            url: "/depedlu_lms/users/get_employee_details.php",
-            method: "GET",
-            data: { employee_id: employeeId },
-            success: function (detailsHtml) {
-              $("#employeeDetailsContainer")
-                .html(
-                  `<button id="backToEmployeeList" class="btn btn-secondary mb-3">← Back to Employee List</button>
-                   ${detailsHtml}`
-                )
-                .show();
-              $("#employeesTableContainer").hide();
-              $("#employees h2, #employees > .btn-primary").hide();
-            },
-          });
-        }
-
-        // If Manage Leave tab is active, reload its table
-        if (
-          $("#manage_leave").is(":visible") &&
-          typeof loadLeaveApplicationsTable === "function"
-        ) {
-          const currentFilter = $("#filterStatus").val();
-          loadLeaveApplicationsTable(currentFilter);
+        $("body").removeClass("modal-open");
+        $(".modal-backdrop").remove();
+        const empId = formData.get("employee_id");
+        if (empId) reloadEmployeeDetails(empId);
+        if ($("#manage_leave").is(":visible")) {
+          loadLeaveApplicationsTable($("#filterStatus").val());
         }
       }
     },
     error: function (xhr) {
-      console.error("AJAX Error:", xhr.responseText);
+      console.error("Apply Leave AJAX Error:", xhr.responseText);
       alert("Failed to submit leave application.");
     },
   });

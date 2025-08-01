@@ -1,48 +1,86 @@
+/* ==============================
+   login.css (Updated to Match Dashboard)
+   ============================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f2f2f2;
+    font-family: 'Poppins', sans-serif;
+    background-color: #EEEEEE;
+    /* light background */
+    color: #393e46;
+    /* dark text */
 }
 
 .login-container {
-    width: 400px;
+    width: 360px;
     margin: 80px auto;
-    padding: 20px;
-    background-color: white;
+    padding: 24px;
+    background-color: #FFFFFF;
+    /* white card */
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
+    margin-bottom: 24px;
     text-align: center;
-    color: #e80202;
+    color: #0092ca;
+    /* accent for header */
+    font-weight: 600;
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: #393e46;
 }
 
 input[type="text"],
 input[type="password"] {
-    width: 95%;
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border: 2px solid #0092ca;
+    /* accent border */
     border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #393e46;
+    /* focus to dark */
 }
 
 button[type="submit"] {
-    background-color: #5604fa;
-    color: white;
-    padding: 10px 15px;
+    width: 100%;
+    padding: 12px;
+    background-color: #0092ca;
+    /* accent button */
+    color: #FFFFFF;
     border: none;
     border-radius: 4px;
-    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 button[type="submit"]:hover {
-    opacity: 0.8;
+    background-color: #393e46;
+    /* dark on hover */
 }
 
 .error {
-    color: red;
+    margin-top: 12px;
+    color: #f73444;
+    /* red error */
+    font-size: 0.9rem;
     text-align: center;
 }

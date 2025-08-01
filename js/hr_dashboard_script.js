@@ -27,8 +27,6 @@ function showTab(tabId) {
 }
 
 // ------------ Data Loaders ------------
-
-// Load leave applications into Manage Leave
 function loadLeaveApplicationsTable(status = "") {
   $.get(
     "/depedlu_lms/users/get_leave_applications_table.php",
@@ -39,7 +37,6 @@ function loadLeaveApplicationsTable(status = "") {
   ).fail(() => alert("Failed to load leave applications."));
 }
 
-// Reload full employee details
 function reloadEmployeeDetails(employeeId) {
   $.ajax({
     url: "/depedlu_lms/users/get_employee_details.php",
@@ -48,10 +45,8 @@ function reloadEmployeeDetails(employeeId) {
     success: function (response) {
       $("#employeeDetailsContainer")
         .html(
-          `
-          <button id="backToEmployeeList" class="btn btn-secondary mb-3">← Back to Employee List</button>
-          ${response}
-        `
+          `<button id="backToEmployeeList" class="btn btn-secondary mb-3">← Back to Employee List</button>
+           ${response}`
         )
         .show();
       $("#employeesTableContainer").hide();
@@ -67,7 +62,6 @@ function reloadEmployeeDetails(employeeId) {
   });
 }
 
-// Reload employees table
 function loadEmployeesTable() {
   $.get("/depedlu_lms/users/get_employees_table.php", function (data) {
     $("#employeesTableContainer").html(data).show();
@@ -83,9 +77,14 @@ window.onload = function () {
     showTab("home");
   }
 };
-console.log("hr_manage.js loaded and ready");
+console.log("hr_dashboard_script.js loaded and ready");
 
 $(document).ready(function () {
+  // Cache original action-modal body so we can restore it
+  const originalLeaveCreditBody = $(
+    "#leaveCreditActionModal .modal-body"
+  ).html();
+
   // ---- Employee modals & table handlers ----
 
   // Open Edit Employee modal
@@ -144,11 +143,8 @@ $(document).ready(function () {
     ).fail(() => alert("Error adding employee."));
   });
 
-  //reset addemployee modal when add employee button is clicked
   $("#addEmployeeModal").on("show.bs.modal", function () {
-    // Reset native form fields
     $(this).find("form")[0].reset();
-    // If you have any custom-styled selects or other widgets, you can reset them here too.
   });
 
   // Edit Employee
@@ -161,8 +157,7 @@ $(document).ready(function () {
         alert(response.message);
         if (response.success) {
           $("#editEmployeeModal").modal("hide");
-          const empId = $("#edit_employee_id").val();
-          if (empId) reloadEmployeeDetails(empId);
+          reloadEmployeeDetails($("#edit_employee_id").val());
         }
       },
       "json"
@@ -172,24 +167,22 @@ $(document).ready(function () {
   // Delete Employee
   $(document).on("click", ".delete-btn", function () {
     $("#employees h2, #employees > .btn-primary").show();
-    if (confirm("Are you sure you want to delete this employee?")) {
-      const id = $(this).data("id");
-      $.post(
-        "/depedlu_lms/users/delete_employee.php",
-        { employee_id: id },
-        function (response) {
-          alert(response.message);
-          if (response.success) loadEmployeesTable();
-        },
-        "json"
-      ).fail(() => alert("Error deleting employee."));
-    }
+    if (!confirm("Are you sure you want to delete this employee?")) return;
+    const id = $(this).data("id");
+    $.post(
+      "/depedlu_lms/users/delete_employee.php",
+      { employee_id: id },
+      function (response) {
+        alert(response.message);
+        if (response.success) loadEmployeesTable();
+      },
+      "json"
+    ).fail(() => alert("Error deleting employee."));
   });
 
   // View Employee Details
   $(document).on("click", ".view-employee-btn", function () {
-    const employeeId = $(this).data("id");
-    if (employeeId) reloadEmployeeDetails(employeeId);
+    reloadEmployeeDetails($(this).data("id"));
   });
 
   // Back to list
@@ -202,140 +195,234 @@ $(document).ready(function () {
   // ---- Leave Credit & Application Handlers ----
 
   // Open Leave Credit Action modal
-  // Handler for clicking a leave-credit box
-  // Open the Leave Credit Action modal instead of Add Credit directly
   $(document).on("click", ".leave-credit-box.clickable", function () {
+    // restore original two-button body
+    $("#leaveCreditActionModal .modal-body").html(originalLeaveCreditBody);
+
     const $box = $(this);
     const leaveTypeId = $box.data("leave-type-id");
     const leaveType = $box.data("leave-type");
     const creditId = $box.data("credit-id");
-    const employeeId = $box.data("employee-id");
+    const empId = $box.data("employee-id");
 
-    // Fill hidden inputs in the action modal
-    $("#modalEmployeeId").val(employeeId);
+    $("#modalEmployeeId").val(empId);
     $("#modalLeaveType").val(leaveTypeId);
     $("#modalCreditId").val(creditId);
     $("#leaveTypeName").text(leaveType);
 
-    // Show the modal with the two choices
     $("#leaveCreditActionModal").modal("show");
   });
 
-  // ------------ Manage Leave Filter ------------
+  // Manage Leave Filter
   $("#filterStatus").on("change", function () {
     loadLeaveApplicationsTable($(this).val());
   });
-
-  // Initial load for Manage Leave
   if (window.location.hash === "#manage_leave") {
     loadLeaveApplicationsTable($("#filterStatus").val());
   }
 
-  // ------------------------------
-  // Manage Leave: View Application
-  // ------------------------------
-  // ------------------------------
-  // Manage Leave: View Application
-  // ------------------------------
+  // View Leave Application
   $(document).on("click", ".view-application-btn", function () {
     const appId = $(this).data("application-id");
-
-    // Clear previous content & show loading state
-    const $modalBody = $("#viewLeaveModal .modal-body");
-    $modalBody.html("<p>Loading...</p>");
-
-    // Fetch details
+    const $mb = $("#viewLeaveModal .modal-body").html("<p>Loading...</p>");
     $.get("/depedlu_lms/users/get_leave_application_details.php", {
       application_id: appId,
     })
-      .done(function (html) {
-        $modalBody.html(html);
-      })
-      .fail(function () {
-        $modalBody.html(
-          "<p class='text-danger'>Failed to load details. Please try again.</p>"
-        );
-      })
-      .always(function () {
-        $("#viewLeaveModal").modal("show");
-      });
+      .done((html) => $mb.html(html))
+      .fail(() =>
+        $mb.html("<p class='text-danger'>Failed to load details.</p>")
+      )
+      .always(() => $("#viewLeaveModal").modal("show"));
   });
 
-  // Handle the edit form submission
+  // Submit edit leave application
   $(document).on("submit", "#editLeaveApplicationForm", function (e) {
     e.preventDefault();
-    const $form = $(this);
-    const payload = $form.serialize();
-
     $.post(
       "/depedlu_lms/users/update_leave_application.php",
-      payload,
-      function (res) {
+      $(this).serialize(),
+      (res) => {
         if (res.success) {
           $("#viewLeaveModal").modal("hide");
-          // reload just the leave applications table with current filter
-          const current = $("#filterStatus").val() || "";
-          loadLeaveApplicationsTable(current);
+          loadLeaveApplicationsTable($("#filterStatus").val() || "");
           alert("Application updated.");
-        } else {
-          alert(res.message || "Update failed.");
-        }
+        } else alert(res.message || "Update failed.");
       },
       "json"
     ).fail(() => alert("Error saving changes."));
   });
 
+  // ------------------------
   // 1) Open initial setup modal
+  // ------------------------
   $(document).on("click", "#initialSetupLeaveBtn", function () {
     const empId = $("#setup_employee_id").val();
-    $("#leaveTypeSelect").empty().append("<option>Loading…</option>");
+    const $select = $("#leaveTypeSelect")
+      .empty()
+      .append("<option>Loading…</option>");
     $("#initialCredits").val("");
+    $("#ctoFieldsContainer").empty();
+    $("#initialCreditsContainer").show();
     $("#initialSetupLeaveModal").modal("show");
 
-    // fetch available types
     $.getJSON("/depedlu_lms/users/get_available_leave_types.php", {
       employee_id: empId,
     })
-      .done((types) => {
-        const sel = $("#leaveTypeSelect").empty();
-        if (types.length === 0) {
-          sel.append("<option disabled>No types left to assign</option>");
+      .done((res) => {
+        // Check success flag
+        if (!res.success) {
+          return alert(res.message || "Could not load leave types.");
+        }
+
+        const types = Array.isArray(res.data) ? res.data : [];
+        $select.empty();
+
+        if (!types.length) {
+          $select.append("<option disabled>No types left to assign</option>");
         } else {
-          sel.append('<option value="">Select a leave type…</option>');
-          types.forEach((t) => {
-            sel.append(`<option value="${t.leave_type_id}">${t.name}</option>`);
-          });
+          $select.append('<option value="">Select a leave type…</option>');
+          types.forEach((t) =>
+            $select.append(
+              `<option value="${t.leave_type_id}">${t.name}</option>`
+            )
+          );
         }
       })
-      .fail(() => {
-        alert("Could not load leave types.");
-      });
+      .fail(() => alert("Could not load leave types."));
   });
 
-  // 2) On “Next” button click → show confirmation
-  $(document).on("click", "#initialSetupNextBtn", function (e) {
+  // ------------------------
+  // 1a) Inject Add Leave Credit mini-form
+  // ------------------------
+  $(document).on("click", "#addLeaveCreditBtn", function () {
+    const empId = $("#modalEmployeeId").val();
+    const leaveTypeId = $("#modalLeaveType").val();
+    const leaveType = $("#leaveTypeName").text().trim();
+    const formHtml = `
+      <h5 class="mb-3">Add Leave Credit: ${leaveType}</h5>
+      <input type="hidden" id="add_credit_employee_id" value="${empId}">
+      <input type="hidden" id="add_credit_leave_type_id" value="${leaveTypeId}">
+      <form id="addCreditForm">
+        <div class="form-group">
+          <label>Number of Days</label>
+          <input type="number" step="0.01" min="0" class="form-control" name="total_credits" required>
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <textarea class="form-control" name="reason" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </form>
+    `;
+    $("#leaveCreditActionModal .modal-body").html(formHtml);
+  });
+
+  // ------------------------
+  // 1b) Handle Add Credit form submit
+  // ------------------------
+  $(document).on("submit", "#addCreditForm", function (e) {
+    e.preventDefault();
+    const empId = $("#add_credit_employee_id").val();
+    const leaveTypeId = $("#add_credit_leave_type_id").val();
+    const total = $(this).find('input[name="total_credits"]').val();
+    const reason = $(this).find('textarea[name="reason"]').val();
+    $.post(
+      "/depedlu_lms/users/add_leave_credit.php",
+      {
+        employee_id: empId,
+        leave_type_id: leaveTypeId,
+        total_credits: total,
+        reason: reason,
+      },
+      function (res) {
+        alert(res.message);
+        if (res.success) {
+          $("#leaveCreditActionModal").modal("hide");
+          $("body").removeClass("modal-open");
+          $(".modal-backdrop").remove();
+          reloadEmployeeDetails(empId);
+        }
+      },
+      "json"
+    ).fail(() => alert("Error adding leave credit."));
+  });
+
+  // ------------------------
+  // 2) Inject CTO fields on change
+  // ------------------------
+  $(document).on("change", "#leaveTypeSelect", function () {
+    if (this.value === "12") {
+      $("#initialCreditsContainer").hide();
+      $("#ctoFieldsContainer").html(`
+        <div class="form-group"><label>Source</label><input type="text" class="form-control" id="source" required></div>
+        <div class="form-group"><label>Earned At</label><input type="date" class="form-control" id="earned_at" required></div>
+        <div class="form-group"><label>Expires At</label><input type="date" class="form-control" id="expires_at" required></div>
+        <div class="form-group"><label>Number of Days</label><input type="number" step="0.01" min="0" class="form-control" id="number_of_days" required></div>`);
+    } else {
+      $("#initialCreditsContainer").show();
+      $("#ctoFieldsContainer").empty();
+    }
+  });
+
+  // ------------------------
+  // 3) Handle Next button click
+  // ------------------------
+  $(document).on("click", "#initialSetupNextBtn", function () {
     const empId = $("#setup_employee_id").val();
     const typeId = $("#leaveTypeSelect").val();
-    const typeName = $("#leaveTypeSelect option:selected").text();
-    const credits = $("#initialCredits").val();
-
-    if (!typeId || !credits) {
-      return alert(
-        "Please choose a leave type and enter an initial credit amount."
-      );
+    if (!typeId) return alert("Please select a leave type.");
+    if (typeId === "12") {
+      // CTO path
+      const src = $("#source").val().trim();
+      const ea = $("#earned_at").val();
+      const ex = $("#expires_at").val();
+      const days = $("#number_of_days").val();
+      if (!src || !ea || !ex || !days) return alert("Fill all CTO fields.");
+      $.post(
+        "/depedlu_lms/users/setup_leave_credit.php",
+        {
+          employee_id: empId,
+          leave_type_id: typeId,
+          source: src,
+          earned_at: ea,
+          expires_at: ex,
+          number_of_days: days,
+        },
+        (res) => {
+          if (res.success) {
+            alert(res.message);
+            $("#initialSetupLeaveModal").modal("hide");
+            $("body").removeClass("modal-open");
+            $(".modal-backdrop").remove();
+            $("#initialSetupLeaveForm")[0].reset();
+            $("#ctoFieldsContainer").empty();
+            $("#initialCreditsContainer").show();
+            reloadEmployeeDetails(empId);
+          } else {
+            console.error("CTO Error:", res.debug);
+            alert(res.message);
+          }
+        },
+        "json"
+      ).fail(() => alert("Error adding CTO credit."));
+    } else {
+      // Non‑CTO flow
+      const credits = $("#initialCredits").val();
+      if (!credits) return alert("Enter initial credit amount.");
+      $("#confirm_employee_id").val(empId);
+      $("#confirm_leave_type_id").val(typeId);
+      $("#confirm_total_credits").val(credits);
+      $("#confirmTypeName").text($("#leaveTypeSelect option:selected").text());
+      $("#confirmCredits").text(credits);
+      $("#initialSetupLeaveModal").modal("hide");
+      $("#confirmSetupModal").modal("show");
     }
-
-    $("#confirm_employee_id").val(empId);
-    $("#confirm_leave_type_id").val(typeId);
-    $("#confirm_total_credits").val(credits);
-    $("#confirmTypeName").text(typeName);
-    $("#confirmCredits").text(credits);
-
-    $("#initialSetupLeaveModal").modal("hide");
-    $("#confirmSetupModal").modal("show");
   });
 
-  // 3) On confirm → POST to setup endpoint, then reload details
+  // ------------------------
+  // 4) Confirm Setup click
+  // ------------------------
   $(document).on("click", "#doSetupBtn", function () {
     const data = {
       employee_id: $("#confirm_employee_id").val(),
@@ -343,56 +430,94 @@ $(document).ready(function () {
       total_credits: $("#confirm_total_credits").val(),
       reason: "Initial setup",
     };
-
-    console.log("Sending setup:", data);
     $.post(
       "/depedlu_lms/users/setup_leave_credit.php",
       data,
       (res) => {
-        console.log("Setup response:", res);
         alert(res.message || (res.success ? "Setup complete!" : "Failed."));
         if (res.success) {
-          // Hide and clean up
           $("#confirmSetupModal").modal("hide");
           $("body").removeClass("modal-open");
           $(".modal-backdrop").remove();
-
-          // Reload the details panel
           reloadEmployeeDetails(data.employee_id);
         }
       },
       "json"
-    ).fail((xhr, status, err) => {
-      console.error("Error in setup call:", status, err, xhr.responseText);
-      alert("Error saving setup. Check console for details.");
+    ).fail(() => alert("Error saving setup."));
+  });
+
+  // ------------------------
+  // 5) Cleanup on modal hide
+  // ------------------------
+  $("#initialSetupLeaveModal").on("hidden.bs.modal", function () {
+    this.querySelector("form").reset();
+    $("#ctoFieldsContainer").empty();
+    $("#initialCreditsContainer").show();
+    $("#leaveTypeSelect").val("").trigger("change");
+  });
+  $("#confirmSetupModal").on("hidden.bs.modal", function () {
+    $(
+      "#confirm_employee_id, #confirm_leave_type_id, #confirm_total_credits"
+    ).val("");
+  });
+  $("#leaveCreditActionModal").on("hidden.bs.modal", function () {
+    const f = this.querySelector("form");
+    if (f) f.reset();
+  });
+  $("#applyLeaveModal").on("hidden.bs.modal", function () {
+    this.querySelector("form").reset();
+    $("#applyLeaveModalFields").empty();
+  });
+
+  // ─── 1) Open the “Deduct Credit” modal ───────────────────────────────────────────
+  $(document).on("click", "#deductLeaveCreditBtn", function () {
+    // Get current context from the action modal
+    const leaveTypeName = $("#leaveTypeName").text().trim();
+    const empId = $("#modalEmployeeId").val();
+    const leaveTypeId = $("#modalLeaveType").val();
+    const creditId = $("#modalCreditId").val();
+
+    // Set modal title and hidden inputs
+    $("#deductLeaveCreditModalLabel").text(
+      `Deduct Leave Credit: ${leaveTypeName}`
+    );
+    $("#deduct_employee_id").val(empId);
+    $("#deduct_leave_type_id").val(leaveTypeId);
+    $("#deduct_credit_id").val(creditId);
+
+    // Show the Deduct modal
+    $("#leaveCreditActionModal").modal("hide");
+    $("#deductLeaveCreditModal").modal("show");
+  });
+
+  // ─── 2) Submit the “Deduct Credit” form via AJAX ─────────────────────────────────
+  $(document).on("submit", "#deductLeaveCreditForm", function (e) {
+    e.preventDefault();
+
+    $.ajax({
+      url: "/depedlu_lms/users/deduct_leave_credit.php",
+      method: "POST",
+      data: $(this).serialize(),
+      dataType: "json",
+      success: function (res) {
+        alert(res.message);
+        if (res.success) {
+          // Close modal & cleanup backdrop
+          $("#deductLeaveCreditModal").modal("hide");
+          $("body").removeClass("modal-open");
+          $(".modal-backdrop").remove();
+          // Refresh employee details to show updated balance
+          const empId = $("#deduct_employee_id").val();
+          if (empId) reloadEmployeeDetails(empId);
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error("Deduct AJAX Error:", status, error);
+        alert("Failed to deduct credit.");
+      },
     });
   });
-
-  // 4) Global cleanup whenever confirm modal is hidden
-  $("#confirmSetupModal").on("hidden.bs.modal", function () {
-    $("body").removeClass("modal-open");
-    $(".modal-backdrop").remove();
-  });
-
-  $(document).on("click", ".leave-credit-box.clickable", function () {
-    const $box = $(this);
-    const leaveTypeId = $box.data("leave-type-id");
-    const leaveType = $box.data("leave-type");
-    const creditId = $box.data("credit-id");
-    const employeeId = $box.data("employee-id");
-
-    // Fill hidden inputs in the action modal
-    $("#modalEmployeeId").val(employeeId);
-    $("#modalLeaveType").val(leaveTypeId);
-    $("#modalCreditId").val(creditId);
-    $("#leaveTypeName").text(leaveType);
-
-    // Show the modal with the two choices
-    $("#leaveCreditActionModal").modal("show");
-  });
 }); // end of $(document).ready()
-
-// Open the Leave Credit Action modal instead of Add Credit directly
 
 // Sidebar toggle
 function toggleSidebar() {

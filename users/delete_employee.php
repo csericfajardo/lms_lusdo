@@ -38,13 +38,19 @@ try {
     $stmt->execute();
     $stmt->close();
 
-    // 3) Delete leave applications (cascade deletes details)
+    // 3) Delete any Compensatory Time‑Off earnings
+    $stmt = $conn->prepare("DELETE FROM cto_earnings WHERE employee_id = ?");
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $stmt->close();
+
+    // 4) Delete leave applications (cascade deletes details)
     $stmt = $conn->prepare("DELETE FROM leave_applications WHERE employee_id = ?");
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();
     $stmt->close();
 
-    // 4) Find any user accounts for this employee
+    // 5) Find any user accounts for this employee
     $stmt = $conn->prepare("SELECT user_id FROM users WHERE employee_id = ?");
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();
@@ -56,21 +62,21 @@ try {
         $placeholders = implode(',', array_fill(0, count($userIds), '?'));
         $types = str_repeat('i', count($userIds));
 
-        // 5) Delete notifications for these user accounts
+        // 6) Delete notifications for these user accounts
         $sql = "DELETE FROM notifications WHERE user_id IN ($placeholders)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($types, ...$userIds);
         $stmt->execute();
         $stmt->close();
 
-        // 6) Delete user records
+        // 7) Delete the user records
         $stmt = $conn->prepare("DELETE FROM users WHERE employee_id = ?");
         $stmt->bind_param("i", $employee_id);
         $stmt->execute();
         $stmt->close();
     }
 
-    // 7) Delete the employee record itself
+    // 8) Finally, delete the employee record itself
     $stmt = $conn->prepare("DELETE FROM employees WHERE employee_id = ?");
     $stmt->bind_param("i", $employee_id);
     $stmt->execute();

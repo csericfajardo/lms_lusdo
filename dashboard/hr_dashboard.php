@@ -24,7 +24,9 @@ $stmt->close();
     <meta charset="UTF-8" />
     <title>HR Dashboard - DepEd La Union LMS</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="../css/hr_dashboard.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
@@ -287,17 +289,7 @@ $stmt->close();
           <span>&times;</span>
         </button>
       </div>
-      <div class="modal-body">
-        <p id="leaveTypeName" class="font-weight-bold"></p>
-        <input type="hidden" id="modalEmployeeId">
-        <input type="hidden" id="modalLeaveType">
-        <input type="hidden" id="modalCreditId">
-
-        <div class="d-flex justify-content-between">
-          <button class="btn btn-primary" id="addLeaveCreditBtn">Add Leave Credit</button>
-          <button class="btn btn-success" id="applyLeaveBtn">Apply Leave</button>
-        </div>
-      </div>
+    
     </div>
   </div>
 </div>
