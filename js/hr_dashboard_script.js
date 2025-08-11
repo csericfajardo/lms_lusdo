@@ -517,6 +517,40 @@ $(document).ready(function () {
       },
     });
   });
+
+  // ─── Setup‐Credit “+” Box Handler ────────────────────────────────────────────
+  $(document).on("click", ".setup-leave-box", function () {
+    const empId = $(this).data("employee-id");
+    const typeId = $(this).data("leave-type-id"); // "" or 12
+    const $modal = $("#initialSetupLeaveModal");
+    const $select = $("#leaveTypeSelect");
+
+    // 1) Set employee
+    $("#setup_employee_id").val(empId);
+
+    // 2) If CTO (+ on the CTO section), force the CTO option
+    if (String(typeId) === "12") {
+      // Replace dropdown with only CTO option, then trigger change
+      $select.html('<option value="12">Compensatory Time-Off</option>');
+      // Hide the "Initial Credits" container so CTO fields show
+      $("#initialCreditsContainer").hide();
+      // Manually inject the CTO fields (source/earned_at/expires_at/number_of_days)
+      $("#ctoFieldsContainer").html(`
+      <div class="form-group"><label>Source</label><input type="text" class="form-control" name="source" required></div>
+      <div class="form-group"><label>Earned At</label><input type="date" class="form-control" name="earned_at" required></div>
+      <div class="form-group"><label>Expires At</label><input type="date" class="form-control" name="expires_at" required></div>
+      <div class="form-group"><label>Number of Days</label><input type="number" step="0.01" min="0" class="form-control" name="total_credits" required></div>
+    `);
+    } else {
+      // Regular leave‐type flow: clear CTO fields, refill dropdown via AJAX
+      $("#ctoFieldsContainer").empty();
+      $("#initialCreditsContainer").show();
+      $select.val("").trigger("change");
+    }
+
+    // 3) Show the modal
+    $modal.modal("show");
+  });
 }); // end of $(document).ready()
 
 // Sidebar toggle

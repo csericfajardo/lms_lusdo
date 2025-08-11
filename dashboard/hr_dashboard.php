@@ -39,8 +39,8 @@ $stmt->close();
 <div class="sidebar" id="sidebar">
     <h4 class="text-center">HR</h4>
     <a href="#" onclick="showTab('home')">Dashboard Home</a>
+     <a href="#" onclick="showTab('employees')">Employees</a>
     <a href="#" onclick="showTab('manage_leave')">Manage Leave</a>
-    <a href="#" onclick="showTab('employees')">Employees</a>
     <a href="#" onclick="showTab('leave_types')">Leave Types</a>
     <a href="#" onclick="showTab('reports')">Reports</a>
     <a href="../auth/logout.php">Logout (<?php echo htmlspecialchars($username); ?>)</a>

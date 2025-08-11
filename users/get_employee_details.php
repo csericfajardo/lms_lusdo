@@ -210,35 +210,44 @@ $stmtCto->close();
     </div>
   </div>
 </div>
-
 <!-- Leave Credits Container -->
-<div class="leave-credits-container" style="display:flex; gap:15px; flex-wrap:wrap;">
+<div class="leave-credits-section mb-4">
+  <h4>Leave Credits</h4>
+  <div class="leave-credits-container d-flex flex-wrap" style="gap:1rem;">
+    <?php if (empty($otherCredits)): ?>
+      <p>No leave credits found for this employee.</p>
+    <?php else: ?>
+      <?php foreach ($otherCredits as $credit): ?>
+        <div class="leave-credit-box clickable"
+             data-leave-type="<?= htmlspecialchars($credit['leave_type_name']) ?>"
+             data-leave-type-id="<?= $credit['leave_type_id'] ?>"
+             data-credit-id="<?= $credit['credit_id'] ?>"
+             data-employee-id="<?= $employee_id ?>">
+          <h5 class="m-0"><?= htmlspecialchars($credit['leave_type_name']) ?></h5>
+          <p class="mb-1"><strong>Balance:</strong>
+             <?= htmlspecialchars(number_format($credit['balance_credits'], 2)) ?></p>
+          <p style="font-size:.8rem;color:#666;margin-top:.25rem;">
+            Updated: <?= htmlspecialchars(date('M d, Y', strtotime($credit['updated_at']))) ?>
+          </p>
+        </div>
+      <?php endforeach; ?>
 
-  <?php if (empty($otherCredits) && empty($ctoRows)): ?>
-    <p>No leave credits found for this employee.</p>
-  <?php else: ?>
+      <!-- ADD NEW-CREDIT BOX -->
+<div class="leave-credit-box add-credit-box"
+     onclick="$('#initialSetupLeaveBtn').click();">
+  <h5>+</h5>
+</div>
+    <?php endif; ?>
+  </div>
+</div>
 
-    <!-- Non-CTO leave credits -->
-    <?php foreach ($otherCredits as $credit): ?>
-      <div class="leave-credit-box clickable"
-           data-leave-type="<?= htmlspecialchars($credit['leave_type_name']) ?>"
-           data-leave-type-id="<?= $credit['leave_type_id'] ?>"
-           data-credit-id="<?= $credit['credit_id'] ?>"
-           data-employee-id="<?= $employee_id ?>">
-        <h5><?= htmlspecialchars($credit['leave_type_name']) ?></h5>
-        <p><strong>Balance:</strong>
-           <?= htmlspecialchars(number_format($credit['balance_credits'], 2)) ?></p>
-        <p style="font-size:.8rem;color:#666;">
-          Updated: <?= htmlspecialchars(date('M d, Y', strtotime($credit['updated_at']))) ?>
-        </p>
-      </div>
-    <?php endforeach; ?>
-
-    <!-- CTO earnings -->
-    <?php if (!empty($ctoRows)): ?>
-      <div style="width:100%; margin-top:2rem; border-top:1px solid #ddd; padding-top:1rem;">
-        <h5>Compensatory Time-Off</h5>
-      </div>
+<!-- Compensatory Time-Off Container -->
+<div class="cto-section mb-4">
+  <h4>Compensatory Time-Off</h4>
+  <div class="cto-container d-flex flex-wrap" style="gap:1rem;">
+    <?php if (empty($ctoRows)): ?>
+      <p>No CTO earnings found.</p>
+    <?php else: ?>
       <?php foreach ($ctoRows as $cto): ?>
         <div class="leave-credit-box clickable"
              data-leave-type="Compensatory Time-Off"
@@ -246,22 +255,26 @@ $stmtCto->close();
              data-credit-id="<?= $cto['cto_id'] ?>"
              data-employee-id="<?= $employee_id ?>">
           <h6><?= htmlspecialchars($cto['source']) ?></h6>
-          <p><strong>Balance:</strong>
-             <?= number_format($cto['balance'], 2) ?> days</p>
-          <p style="font-size:.8rem;color:#666;">
-            Earned <?= date('M d, Y', strtotime($cto['earned_at'])) ?>,
+          <p><strong>Balance:</strong> <?= number_format($cto['balance'], 2) ?> days</p>
+          <p style="font-size:.8rem;color:#666; margin-top:0.5rem;">
+            Earned <?= date('M d, Y', strtotime($cto['earned_at'])) ?><br>
             Expires <?= date('M d, Y', strtotime($cto['expires_at'])) ?>
           </p>
         </div>
       <?php endforeach; ?>
+
+      <!-- ADD NEW-CTO BOX -->
+<div class="leave-credit-box add-credit-box"
+     onclick="$('#initialSetupLeaveBtn').click();">
+  <h5>+</h5>
+</div>
     <?php endif; ?>
-
-  <?php endif; ?>
-
+  </div>
 </div>
 
 <!-- Leave Credit Action Modal -->
-<div class="modal fade" id="leaveCreditActionModal" tabindex="-1" role="dialog" aria-labelledby="leaveCreditModalLabel" aria-hidden="true">
+<div class="modal fade" id="leaveCreditActionModal" tabindex="-1" role="dialog"
+     aria-labelledby="leaveCreditModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -287,7 +300,8 @@ $stmtCto->close();
 </div>
 
 <!-- Deduct Leave Credit Modal -->
-<div class="modal fade" id="deductLeaveCreditModal" tabindex="-1" role="dialog" aria-labelledby="deductLeaveCreditModalLabel" aria-hidden="true">
+<div class="modal fade" id="deductLeaveCreditModal" tabindex="-1" role="dialog"
+     aria-labelledby="deductLeaveCreditModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <form id="deductLeaveCreditForm">
       <div class="modal-content">

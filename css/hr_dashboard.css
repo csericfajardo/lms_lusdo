@@ -387,6 +387,28 @@ label {
 .employee-details table tr:last-child td {
     border-bottom: none;
 }
+
+ /* Smaller dashed “add” boxes */
+/* make the + box 50×50, center its “+” text, and vertically center it in the row */
+.leave-credit-box.add-credit-box {
+    width: 120px;
+    height: 100px;
+    border: 2px dashed var(--accent);
+    display: flex;
+    align-items: center;
+    /* center the “+” inside */
+    justify-content: center;
+    cursor: pointer;
+    align-self: center;
+    /* vertically center this box among the 130px-tall siblings */
+}
+
+/* optionally tweak the plus size */
+.leave-credit-box.add-credit-box h5 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+ 
 /* ------------------------------------------------
    11) Mobile Full-Width & Responsive Type
    ------------------------------------------------ */
@@ -433,4 +455,7 @@ label {
     .leave-credit-box p {
         font-size: 0.8125rem;
     }
+
+       
 }
+
