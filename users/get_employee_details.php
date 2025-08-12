@@ -29,6 +29,7 @@ $sqlEmp = "
 $stmtEmp = $conn->prepare($sqlEmp);
 $stmtEmp->bind_param("i", $employee_id);
 $stmtEmp->execute();
+resultEmp:
 $resultEmp = $stmtEmp->get_result();
 if ($resultEmp->num_rows === 0) {
     echo 'Employee not found.';
@@ -45,22 +46,30 @@ $middle  = $emp['middle_name']
 $last    = ucwords(strtolower($emp['last_name']));
 $fullName = "$first$middle $last";
 
-// 2) Fetch non-CTO leave credits (leave_type_id <> 12)
 $sqlCredits = "
-    SELECT 
-        lc.credit_id,
-        lc.leave_type_id,
-        lt.name AS leave_type_name,
-        lc.total_credits,
-        lc.used_credits,
-        lc.balance_credits,
-        lc.updated_at
-    FROM leave_credits lc
-    JOIN leave_types lt ON lc.leave_type_id = lt.leave_type_id
-    WHERE lc.employee_id = ?
-      AND lc.leave_type_id <> 12
-    ORDER BY lt.name
+  SELECT 
+    lc.credit_id,
+    lc.leave_type_id,
+    lt.name AS leave_type_name,
+    lc.total_credits,
+    lc.used_credits,
+    lc.balance_credits,
+    lc.updated_at
+  FROM leave_credits lc
+  JOIN leave_types lt ON lc.leave_type_id = lt.leave_type_id
+  WHERE lc.employee_id = ?
+    AND lc.leave_type_id <> 12
+    AND (lc.leave_type_id IN (1,2) OR lc.balance_credits > 0)
+  ORDER BY 
+    CASE 
+      WHEN lc.leave_type_id = 1 THEN 0  -- Vacation
+      WHEN lc.leave_type_id = 2 THEN 1  -- Sick
+      ELSE 2
+    END,
+    lt.name
 ";
+
+
 $stmtCredits = $conn->prepare($sqlCredits);
 $stmtCredits->bind_param("i", $employee_id);
 $stmtCredits->execute();
@@ -73,18 +82,21 @@ $stmtCredits->close();
 
 // 3) Fetch all CTO earnings separately
 $sqlCto = "
-    SELECT
-        cto_id,
-        days_earned,
-        days_used,
-        (days_earned - days_used) AS balance,
-        earned_at,
-        expires_at,
-        source
-    FROM cto_earnings
-    WHERE employee_id = ?
-    ORDER BY earned_at DESC
+  SELECT
+    cto_id,
+    days_earned,
+    days_used,
+    balance,
+    earned_at,
+    expires_at,
+    source
+  FROM cto_earnings
+  WHERE employee_id = ?
+    AND balance > 0
+  ORDER BY earned_at DESC
 ";
+
+
 $stmtCto = $conn->prepare($sqlCto);
 $stmtCto->bind_param("i", $employee_id);
 $stmtCto->execute();
@@ -99,6 +111,35 @@ $stmtCto->close();
 <!-- Employee Personal Details -->
 <div class="employee-details p-4 mb-4 bg-white rounded shadow-sm">
   <h4 class="mb-3">Personal Details</h4>
+  <!-- Action buttons (Edit / Delete) -->
+<div class="d-flex justify-content-end mb-2 action-buttons">
+  <button
+    class="btn btn-warning btn-sm mr-2 edit-btn"
+    title="Edit employee"
+    data-id="<?= (int)$emp['employee_id'] ?>"
+    data-employee_number="<?= htmlspecialchars($emp['employee_number'], ENT_QUOTES) ?>"
+    data-first_name="<?= htmlspecialchars($emp['first_name'], ENT_QUOTES) ?>"
+    data-middle_name="<?= htmlspecialchars($emp['middle_name'] ?? '', ENT_QUOTES) ?>"
+    data-last_name="<?= htmlspecialchars($emp['last_name'], ENT_QUOTES) ?>"
+    data-employment_type="<?= htmlspecialchars($emp['employment_type'], ENT_QUOTES) ?>"
+    data-position="<?= htmlspecialchars($emp['position'], ENT_QUOTES) ?>"
+    data-office="<?= htmlspecialchars($emp['office'], ENT_QUOTES) ?>"
+    data-email="<?= htmlspecialchars($emp['email'], ENT_QUOTES) ?>"
+    data-date_hired="<?= htmlspecialchars($emp['date_hired'], ENT_QUOTES) ?>"
+    data-status="<?= htmlspecialchars($emp['status'], ENT_QUOTES) ?>"
+  >
+    Edit
+  </button>
+
+  <button
+    class="btn btn-danger btn-sm delete-btn"
+    title="Delete employee"
+    data-id="<?= (int)$emp['employee_id'] ?>"
+  >
+    Delete
+  </button>
+</div>
+
   <table class="table table-borderless mb-0">
     <tbody>
       <tr>
@@ -210,6 +251,7 @@ $stmtCto->close();
     </div>
   </div>
 </div>
+
 <!-- Leave Credits Container -->
 <div class="leave-credits-section mb-4">
   <h4>Leave Credits</h4>
@@ -233,10 +275,10 @@ $stmtCto->close();
       <?php endforeach; ?>
 
       <!-- ADD NEW-CREDIT BOX -->
-<div class="leave-credit-box add-credit-box"
-     onclick="$('#initialSetupLeaveBtn').click();">
-  <h5>+</h5>
-</div>
+      <div class="leave-credit-box add-credit-box"
+           onclick="$('#initialSetupLeaveBtn').click();">
+        <h5>+</h5>
+      </div>
     <?php endif; ?>
   </div>
 </div>
@@ -245,8 +287,16 @@ $stmtCto->close();
 <div class="cto-section mb-4">
   <h4>Compensatory Time-Off</h4>
   <div class="cto-container d-flex flex-wrap" style="gap:1rem;">
+
     <?php if (empty($ctoRows)): ?>
-      <p>No CTO earnings found.</p>
+      <!-- Show Add CTO box even when no earnings yet -->
+      <div class="leave-credit-box add-credit-box setup-leave-box"
+           data-employee-id="<?= $employee_id ?>"
+           data-leave-type-id="12"
+           title="Add Compensatory Time‑Off">
+        <h5 class="m-0">+</h5>
+        <small>Add CTO</small>
+      </div>
     <?php else: ?>
       <?php foreach ($ctoRows as $cto): ?>
         <div class="leave-credit-box clickable"
@@ -263,12 +313,16 @@ $stmtCto->close();
         </div>
       <?php endforeach; ?>
 
-      <!-- ADD NEW-CTO BOX -->
-<div class="leave-credit-box add-credit-box"
-     onclick="$('#initialSetupLeaveBtn').click();">
-  <h5>+</h5>
-</div>
+      <!-- Keep Add CTO box even when there are existing earnings -->
+      <div class="leave-credit-box add-credit-box setup-leave-box"
+           data-employee-id="<?= $employee_id ?>"
+           data-leave-type-id="12"
+           title="Add Compensatory Time‑Off">
+        <h5 class="m-0">+</h5>
+        <small>Add CTO</small>
+      </div>
     <?php endif; ?>
+
   </div>
 </div>
 

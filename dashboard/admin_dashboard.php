@@ -91,7 +91,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="/depedlu_lms/admin/manage_hr.js"></script>
+<script src="/depedlu_lms/js/admin_dashboard_script.js"></script>
 
 <script>
 function showTab(tabId) {

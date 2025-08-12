@@ -408,7 +408,51 @@ label {
     margin: 0;
     font-size: 1.5rem;
 }
- 
+
+.leave-credit-box {
+    /* was: height: 130px; justify-content: center; */
+    min-height: 130px;
+    height: auto;
+    justify-content: flex-start;
+    /* stack from top */
+}
+
+/* simple wrapping (no cut) */
+.leave-credit-box h5,
+.leave-credit-box h6 {
+    font-size: 1.125rem;
+    color: var(--accent);
+    margin: 0 0 8px;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+    /* fallback */
+    overflow-wrap: anywhere;
+    /* modern wrap */
+    text-align: center;
+}
+
+#notifBadge {
+    min-width: 20px;
+}
+
+/* Notification Modal Minimal Style */
+#notificationModal .modal-content {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+#notificationModal #notificationList li:hover {
+    background: #f9f9f9;
+}
+
+#notificationModal .modal-header h6 {
+    color: #333;
+}
+
+#notificationModal small {
+    display: block;
+    margin-top: 2px;
+}
 /* ------------------------------------------------
    11) Mobile Full-Width & Responsive Type
    ------------------------------------------------ */
@@ -454,8 +498,10 @@ label {
 
     .leave-credit-box p {
         font-size: 0.8125rem;
+        
     }
 
        
+
 }
 

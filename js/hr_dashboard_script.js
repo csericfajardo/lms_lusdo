@@ -51,6 +51,15 @@ function reloadEmployeeDetails(employeeId) {
         .show();
       $("#employeesTableContainer").hide();
       $("#employees h2, #employees > .btn-primary").hide();
+
+      // Re-cache the action modal's original body AFTER content is injected
+      const $scopedActionModal = $(
+        "#employeeDetailsContainer #leaveCreditActionModal"
+      );
+      window.__originalLeaveCreditBody = $scopedActionModal
+        .find(".modal-body")
+        .html();
+
       $("html, body").animate(
         { scrollTop: $("#employeeDetailsContainer").offset().top },
         500
@@ -62,8 +71,8 @@ function reloadEmployeeDetails(employeeId) {
   });
 }
 
-function loadEmployeesTable() {
-  $.get("/depedlu_lms/users/get_employees_table.php", function (data) {
+function loadEmployeesTable(q = "") {
+  $.get("/depedlu_lms/users/get_employees_table.php", { q }, function (data) {
     $("#employeesTableContainer").html(data).show();
     $("#employeeDetailsContainer").hide().empty();
   }).fail(() => alert("Failed to load employees."));
@@ -80,10 +89,8 @@ window.onload = function () {
 console.log("hr_dashboard_script.js loaded and ready");
 
 $(document).ready(function () {
-  // Cache original action-modal body so we can restore it
-  const originalLeaveCreditBody = $(
-    "#leaveCreditActionModal .modal-body"
-  ).html();
+  // We will cache the modal body after AJAX injects the details
+  window.__originalLeaveCreditBody = "";
 
   // ---- Employee modals & table handlers ----
 
@@ -194,23 +201,22 @@ $(document).ready(function () {
 
   // ---- Leave Credit & Application Handlers ----
 
-  // Open Leave Credit Action modal
+  // Open Leave Credit Action modal (SCOPED)
   $(document).on("click", ".leave-credit-box.clickable", function () {
-    // restore original two-button body
-    $("#leaveCreditActionModal .modal-body").html(originalLeaveCreditBody);
+    const $modal = $("#employeeDetailsContainer #leaveCreditActionModal");
+
+    // Restore the original options view each time
+    if (window.__originalLeaveCreditBody != null) {
+      $modal.find(".modal-body").html(window.__originalLeaveCreditBody);
+    }
 
     const $box = $(this);
-    const leaveTypeId = $box.data("leave-type-id");
-    const leaveType = $box.data("leave-type");
-    const creditId = $box.data("credit-id");
-    const empId = $box.data("employee-id");
+    $modal.find("#modalEmployeeId").val($box.data("employee-id"));
+    $modal.find("#modalLeaveType").val($box.data("leave-type-id"));
+    $modal.find("#modalCreditId").val($box.data("credit-id"));
+    $modal.find("#leaveTypeName").text($box.data("leave-type"));
 
-    $("#modalEmployeeId").val(empId);
-    $("#modalLeaveType").val(leaveTypeId);
-    $("#modalCreditId").val(creditId);
-    $("#leaveTypeName").text(leaveType);
-
-    $("#leaveCreditActionModal").modal("show");
+    $modal.modal("show");
   });
 
   // Manage Leave Filter
@@ -269,11 +275,9 @@ $(document).ready(function () {
       employee_id: empId,
     })
       .done((res) => {
-        // Check success flag
         if (!res.success) {
           return alert(res.message || "Could not load leave types.");
         }
-
         const types = Array.isArray(res.data) ? res.data : [];
         $select.empty();
 
@@ -292,13 +296,17 @@ $(document).ready(function () {
   });
 
   // ------------------------
-  // 1a) Inject Add Leave Credit mini-form
+  // 1a) Inject Add Leave Credit mini-form (SCOPED)
   // ------------------------
-  $(document).on("click", "#addLeaveCreditBtn", function () {
-    const empId = $("#modalEmployeeId").val();
-    const leaveTypeId = $("#modalLeaveType").val();
-    const leaveType = $("#leaveTypeName").text().trim();
-    const formHtml = `
+  $(document).on(
+    "click",
+    "#employeeDetailsContainer #addLeaveCreditBtn",
+    function () {
+      const $modal = $("#employeeDetailsContainer #leaveCreditActionModal");
+      const empId = $modal.find("#modalEmployeeId").val();
+      const leaveTypeId = $modal.find("#modalLeaveType").val();
+      const leaveType = $modal.find("#leaveTypeName").text().trim();
+      const formHtml = `
       <h5 class="mb-3">Add Leave Credit: ${leaveType}</h5>
       <input type="hidden" id="add_credit_employee_id" value="${empId}">
       <input type="hidden" id="add_credit_leave_type_id" value="${leaveTypeId}">
@@ -315,8 +323,9 @@ $(document).ready(function () {
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
       </form>
     `;
-    $("#leaveCreditActionModal .modal-body").html(formHtml);
-  });
+      $modal.find(".modal-body").html(formHtml);
+    }
+  );
 
   // ------------------------
   // 1b) Handle Add Credit form submit
@@ -338,7 +347,7 @@ $(document).ready(function () {
       function (res) {
         alert(res.message);
         if (res.success) {
-          $("#leaveCreditActionModal").modal("hide");
+          $("#employeeDetailsContainer #leaveCreditActionModal").modal("hide");
           $("body").removeClass("modal-open");
           $(".modal-backdrop").remove();
           reloadEmployeeDetails(empId);
@@ -373,8 +382,7 @@ $(document).ready(function () {
     const typeId = $("#leaveTypeSelect").val();
     if (!typeId) return alert("Please select a leave type.");
     if (typeId === "12") {
-      // CTO path
-      const src = $("#source").val().trim();
+      const src = ($("#source").val() ?? "").toString().trim();
       const ea = $("#earned_at").val();
       const ex = $("#expires_at").val();
       const days = $("#number_of_days").val();
@@ -407,7 +415,6 @@ $(document).ready(function () {
         "json"
       ).fail(() => alert("Error adding CTO credit."));
     } else {
-      // Non‑CTO flow
       const credits = $("#initialCredits").val();
       if (!credits) return alert("Enter initial credit amount.");
       $("#confirm_employee_id").val(empId);
@@ -447,8 +454,21 @@ $(document).ready(function () {
   });
 
   // ------------------------
-  // 5) Cleanup on modal hide
+  // 5) Cleanup & restore on modal hide (SCOPED)
   // ------------------------
+  $(document).on(
+    "hidden.bs.modal",
+    "#employeeDetailsContainer #leaveCreditActionModal",
+    function () {
+      const $modal = $(this);
+      const form = $modal.find("form")[0];
+      if (form) form.reset();
+      if (window.__originalLeaveCreditBody != null) {
+        $modal.find(".modal-body").html(window.__originalLeaveCreditBody);
+      }
+    }
+  );
+
   $("#initialSetupLeaveModal").on("hidden.bs.modal", function () {
     this.querySelector("form").reset();
     $("#ctoFieldsContainer").empty();
@@ -460,37 +480,32 @@ $(document).ready(function () {
       "#confirm_employee_id, #confirm_leave_type_id, #confirm_total_credits"
     ).val("");
   });
-  $("#leaveCreditActionModal").on("hidden.bs.modal", function () {
-    const f = this.querySelector("form");
-    if (f) f.reset();
-  });
-  $("#applyLeaveModal").on("hidden.bs.modal", function () {
-    this.querySelector("form").reset();
-    $("#applyLeaveModalFields").empty();
-  });
 
-  // ─── 1) Open the “Deduct Credit” modal ───────────────────────────────────────────
-  $(document).on("click", "#deductLeaveCreditBtn", function () {
-    // Get current context from the action modal
-    const leaveTypeName = $("#leaveTypeName").text().trim();
-    const empId = $("#modalEmployeeId").val();
-    const leaveTypeId = $("#modalLeaveType").val();
-    const creditId = $("#modalCreditId").val();
+  // ─── 1) Open the “Deduct Credit” modal (SCOPED) ─────────────────────────────
+  $(document).on(
+    "click",
+    "#employeeDetailsContainer #deductLeaveCreditBtn",
+    function () {
+      const $action = $("#employeeDetailsContainer #leaveCreditActionModal");
+      const leaveTypeName = $action.find("#leaveTypeName").text().trim();
+      const empId = $action.find("#modalEmployeeId").val();
+      const leaveTypeId = $action.find("#modalLeaveType").val();
+      const creditId = $action.find("#modalCreditId").val();
 
-    // Set modal title and hidden inputs
-    $("#deductLeaveCreditModalLabel").text(
-      `Deduct Leave Credit: ${leaveTypeName}`
-    );
-    $("#deduct_employee_id").val(empId);
-    $("#deduct_leave_type_id").val(leaveTypeId);
-    $("#deduct_credit_id").val(creditId);
+      const $deduct = $("#employeeDetailsContainer #deductLeaveCreditModal");
+      $deduct
+        .find("#deductLeaveCreditModalLabel")
+        .text(`Deduct Leave Credit: ${leaveTypeName}`);
+      $deduct.find("#deduct_employee_id").val(empId);
+      $deduct.find("#deduct_leave_type_id").val(leaveTypeId);
+      $deduct.find("#deduct_credit_id").val(creditId);
 
-    // Show the Deduct modal
-    $("#leaveCreditActionModal").modal("hide");
-    $("#deductLeaveCreditModal").modal("show");
-  });
+      $action.modal("hide");
+      $deduct.modal("show");
+    }
+  );
 
-  // ─── 2) Submit the “Deduct Credit” form via AJAX ─────────────────────────────────
+  // ─── 2) Submit the “Deduct Credit” form via AJAX ────────────────────────────
   $(document).on("submit", "#deductLeaveCreditForm", function (e) {
     e.preventDefault();
 
@@ -502,11 +517,9 @@ $(document).ready(function () {
       success: function (res) {
         alert(res.message);
         if (res.success) {
-          // Close modal & cleanup backdrop
-          $("#deductLeaveCreditModal").modal("hide");
+          $("#employeeDetailsContainer #deductLeaveCreditModal").modal("hide");
           $("body").removeClass("modal-open");
           $(".modal-backdrop").remove();
-          // Refresh employee details to show updated balance
           const empId = $("#deduct_employee_id").val();
           if (empId) reloadEmployeeDetails(empId);
         }
@@ -525,32 +538,163 @@ $(document).ready(function () {
     const $modal = $("#initialSetupLeaveModal");
     const $select = $("#leaveTypeSelect");
 
-    // 1) Set employee
     $("#setup_employee_id").val(empId);
 
-    // 2) If CTO (+ on the CTO section), force the CTO option
     if (String(typeId) === "12") {
-      // Replace dropdown with only CTO option, then trigger change
       $select.html('<option value="12">Compensatory Time-Off</option>');
-      // Hide the "Initial Credits" container so CTO fields show
       $("#initialCreditsContainer").hide();
-      // Manually inject the CTO fields (source/earned_at/expires_at/number_of_days)
       $("#ctoFieldsContainer").html(`
-      <div class="form-group"><label>Source</label><input type="text" class="form-control" name="source" required></div>
-      <div class="form-group"><label>Earned At</label><input type="date" class="form-control" name="earned_at" required></div>
-      <div class="form-group"><label>Expires At</label><input type="date" class="form-control" name="expires_at" required></div>
-      <div class="form-group"><label>Number of Days</label><input type="number" step="0.01" min="0" class="form-control" name="total_credits" required></div>
-    `);
+        <div class="form-group"><label>Source</label><input type="text" class="form-control" id="source" required></div>
+        <div class="form-group"><label>Earned At</label><input type="date" class="form-control" id="earned_at" required></div>
+        <div class="form-group"><label>Expires At</label><input type="date" class="form-control" id="expires_at" required></div>
+        <div class="form-group"><label>Number of Days</label><input type="number" step="0.01" min="0" class="form-control" id="number_of_days" required></div>
+      `);
     } else {
-      // Regular leave‐type flow: clear CTO fields, refill dropdown via AJAX
       $("#ctoFieldsContainer").empty();
       $("#initialCreditsContainer").show();
       $select.val("").trigger("change");
     }
 
-    // 3) Show the modal
     $modal.modal("show");
   });
+
+  // --- debounce helper ---
+  function debounce(fn, wait) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
+  // --- fetch & render suggestions into <datalist> ---
+  const fetchEmployeeSuggestions = debounce(function (q) {
+    if (!q) {
+      $("#employeeSuggestions").empty();
+      return;
+    }
+    $.getJSON(
+      "/depedlu_lms/users/employee_suggestions.php",
+      { q },
+      function (rows) {
+        const $dl = $("#employeeSuggestions").empty();
+        rows.forEach((r) => {
+          // show both text and value so choosing a suggestion fills input nicely
+          const label = `${r.employee_number} — ${r.full_name} — ${r.office}`;
+          $("<option>").attr("value", label).appendTo($dl);
+        });
+      }
+    );
+  }, 200);
+
+  // --- live search: update table + suggestions as the user types ---
+  $(document).on(
+    "input",
+    "#employeeSearch",
+    debounce(function () {
+      const raw = $(this).val().trim();
+      // If user selected from datalist "123 — Name — Office", still search by it;
+      // backend matches across number, name, and office.
+      loadEmployeesTable(raw);
+      fetchEmployeeSuggestions(raw);
+    }, 250)
+  );
+
+  // When Employees tab first opens, ensure search is applied (blank = all)
+  $(document).on("click", "a[onclick*=\"showTab('employees')\"]", function () {
+    const q = $("#employeeSearch").val().trim();
+    loadEmployeesTable(q);
+  });
+
+  // Also when page loads directly on Employees via hash
+  if (window.location.hash === "#employees") {
+    const q = $("#employeeSearch").val()?.trim() || "";
+    loadEmployeesTable(q);
+  }
+
+  // ===== Notifications (minimal modal) =====
+  function renderNotificationsList(items) {
+    const $list = $("#notificationList").empty(); // <- singular
+    if (!items.length) {
+      $list.append(
+        '<li class="py-2 px-2 text-center text-muted">No notifications.</li>'
+      );
+      return;
+    }
+    items.forEach((n) => {
+      const created = new Date(n.created_at.replace(" ", "T"));
+      const li = $(`
+      <li class="py-2 px-2 border-bottom" style="transition: background .2s;">
+        <div style="font-size:.85rem; color:#444; white-space:pre-line;">${$(
+          "<div>"
+        )
+          .text(n.message)
+          .html()}</div>
+        <small style="color:#888;">${created.toLocaleString()}</small>
+      </li>
+    `);
+      $list.append(li);
+    });
+  }
+
+  function refreshNotifications(openModal = false) {
+    $.getJSON(
+      "/depedlu_lms/users/get_notifications.php",
+      { limit: 50 },
+      function (res) {
+        if (!res.success) return;
+
+        // badge
+        const count = res.unread || 0;
+        const $badge = $("#notifBadge");
+        if (count > 0) {
+          $badge.text(count).show();
+        } else {
+          $badge.hide();
+        }
+
+        // render if modal open or forced
+        if ($("#notificationModal").hasClass("show") || openModal) {
+          // <- singular
+          renderNotificationsList(res.data || []);
+        }
+      }
+    );
+  }
+
+  // open modal
+  $(document).on("click", "#openNotificationsBtn", function () {
+    $("#notificationModal").modal("show"); // <- singular
+    refreshNotifications(true);
+  });
+
+  // mark-all & mark-one handlers (if you have these buttons in the new minimal UI,
+  // keep them; otherwise you can remove these)
+  $(document).on("click", "#markAllReadBtn", function () {
+    $.post(
+      "/depedlu_lms/users/mark_notification_read.php",
+      {},
+      function () {
+        refreshNotifications(true);
+      },
+      "json"
+    );
+  });
+  $(document).on("click", ".markReadBtn", function () {
+    const id = $(this).data("id");
+    $.post(
+      "/depedlu_lms/users/mark_notification_read.php",
+      { notification_id: id },
+      function () {
+        refreshNotifications(true);
+      },
+      "json"
+    );
+  });
+
+  // poll + initial
+  setInterval(refreshNotifications, 15000);
+  refreshNotifications();
 }); // end of $(document).ready()
 
 // Sidebar toggle

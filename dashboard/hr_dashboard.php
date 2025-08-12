@@ -48,6 +48,46 @@ $stmt->close();
 
 <!-- Main Content -->
 <div class="content">
+
+<!-- Notifications toolbar -->
+<div class="d-flex justify-content-end align-items-center mb-3">
+  <button id="openNotificationsBtn" class="btn btn-secondary position-relative">
+    🔔 Notifications
+    <span id="notifBadge"
+          class="badge badge-danger position-absolute"
+          style="top:-8px; right:-8px; display:none;">0</span>
+  </button>
+</div>
+
+<!-- Notification Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document"> <!-- smaller modal -->
+    <div class="modal-content" style="border-radius: 8px; border: none;">
+      <div class="modal-header" style="border-bottom: 1px solid #eaeaea; padding: 10px 15px;">
+        <h6 class="modal-title" id="notificationModalLabel" style="font-weight: 500; font-size: 0.95rem;">Notifications</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="font-size: 1rem; padding: 0; margin: 0;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-2" style="max-height: 300px; overflow-y: auto; font-size: 0.85rem; line-height: 1.3; color: #444;">
+        <ul class="list-unstyled mb-0" id="notificationList">
+          <!-- Example Notification -->
+          <li class="py-2 px-2 border-bottom" style="transition: background 0.2s;">
+            <div style="font-size: 0.85rem;">Leave application approved for <strong style="font-weight: 500;">John Doe</strong></div>
+            <small style="color: #888;">2 hours ago</small>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer p-2" style="border-top: 1px solid #eaeaea;">
+        <button type="button" class="btn btn-link btn-sm" style="font-size: 0.8rem; padding: 0;" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
     <div id="home" class="tab-content">
         <h2>Welcome to HR Dashboard</h2>
         <div class="cards">
@@ -96,12 +136,17 @@ $stmt->close();
 
     <div id="employees" class="tab-content" style="display:none;">
         <h2>Employees</h2>
+
+
+
 <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addEmployeeModal">Add Employee</button>
 
 <div id="employeesTableContainer">
     <?php include '../users/get_employees_table.php'; ?>
 </div>
+ 
 <div id="employeeDetailsContainer" style="margin-top: 20px; display:none;">
+  
   <!-- Personal details will load here -->
 </div>
 
@@ -279,20 +324,7 @@ $stmt->close();
   </div>
 </div>
 
-<!-- Leave Credit Action Modal -->
-<div class="modal fade" id="leaveCreditActionModal" tabindex="-1" role="dialog" aria-labelledby="leaveCreditModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="leaveCreditModalLabel">Leave Credit Options</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span>&times;</span>
-        </button>
-      </div>
-    
-    </div>
-  </div>
-</div>
+
 
 <!-- Add Leave Credit Modal -->
 <div class="modal fade" id="addLeaveCreditModal" tabindex="-1" role="dialog" aria-labelledby="addLeaveCreditModalLabel" aria-hidden="true">
