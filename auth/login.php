@@ -21,32 +21,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $result->fetch_assoc();
 
             if (password_verify($password, $user['password'])) {
-                // Set session variables
-                $_SESSION['user_id']  = $user['user_id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['role']     = $user['role'];
+    // Set session variables
+    $_SESSION['user_id']  = $user['user_id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['role']     = $user['role'];
 
-                // Optional (useful in your dashboards):
-                $_SESSION['name']        = $user['name'] ?? ($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '');
-                $_SESSION['employee_no'] = $user['employee_no'] ?? null;
-                $_SESSION['email']       = $user['email'] ?? null;
+    // Optional extras for dashboards:
+    $_SESSION['name']        = $user['name'] ?? '';
+    $_SESSION['employee_no'] = $user['employee_no'] ?? '';
+    $_SESSION['email']       = $user['email'] ?? '';
 
-                // Redirect based on role
-                if ($user['role'] === 'super_admin') {
-                    header("Location: /depedlu_lms/dashboard/superadmin_dashboard.php");
-                } else if ($user['role'] === 'admin') {
-                    header("Location: /depedlu_lms/dashboard/admin_dashboard.php");
-                } else if ($user['role'] === 'hr') {
-                    header("Location: /depedlu_lms/dashboard/hr_dashboard.php");
-                } else {
-                    header("Location: /depedlu_lms/dashboard/employee_dashboard.php");
-                }
-                exit();
-            } else {
-                $error = "Invalid password.";
-            }
-        } else {
-            $error = "User not found.";
+    // Debug alert before redirect
+    echo "<script>
+        alert('Login successful for {$user['username']} (role: {$user['role']})');
+    </script>";
+
+    // Redirect based on role
+    if ($user['role'] == 'super_admin') {
+        header("Refresh: 0; URL=/depedlu_lms/dashboard/superadmin_dashboard.php");
+    } else if ($user['role'] == 'admin') {
+        header("Refresh: 0; URL=/depedlu_lms/dashboard/admin_dashboard.php");
+    } else if ($user['role'] == 'hr') {
+        header("Refresh: 0; URL=/depedlu_lms/dashboard/hr_dashboard.php");
+    } else {
+        header("Refresh: 0; URL=/depedlu_lms/dashboard/employee_dashboard.php");
+    }
+    exit();
+} else {
+    $error = "Invalid password.";
+}
         }
         $stmt->close();
     }

@@ -1,11 +1,11 @@
 // employee_dashboard_script.js
-// Mobile-first behavior for the employee dashboard
 (function () {
   const qs = (s, el = document) => el.querySelector(s);
   const qsa = (s, el = document) => Array.from(el.querySelectorAll(s));
 
   const endpoints = window.EDL_ENDPOINTS || {};
 
+  // Elements
   const personalBtn = qs("#btnPersonal");
   const personalModal = qs("#personalModal");
   const pd = {
@@ -68,64 +68,71 @@
     return resp.json().catch(() => ({}));
   }
 
-  // 1) Personal details
-  personalBtn?.addEventListener("click", async () => {
+  // Load personal details (header + modal)
+  async function loadPersonalDetails() {
     try {
       const info = await getJSON(endpoints.employeeDetails);
+      // Fill modal fields
       pd.employeeNo.textContent = info.employee_no ?? "—";
       pd.name.textContent = info.name ?? "—";
       pd.email.textContent = info.email ?? "—";
       pd.position.textContent = info.position ?? "—";
       pd.empType.textContent = info.employment_type ?? "—";
-      openDialog(personalModal);
+      // Fill header inline fields
+      const empNoEl = document.getElementById("empNo");
+      const empNameEl = document.getElementById("empName");
+      if (empNoEl) empNoEl.textContent = info.employee_no ?? "—";
+      if (empNameEl) empNameEl.textContent = info.name ?? "—";
     } catch (e) {
-      alert("Failed to load personal details.");
+      console.error("Failed to load personal details.", e);
     }
+  }
+
+  // Personal details modal open
+  personalBtn?.addEventListener("click", () => {
+    openDialog(personalModal);
   });
 
-  // 2) Leave credits + dynamic apply
+  // Leave credits
   async function loadLeaveCredits() {
     try {
-      const types = await getJSON(endpoints.availableLeaveTypes); // [{code, name, balance}]
+      const types = await getJSON(endpoints.availableLeaveTypes);
       leaveGrid.innerHTML = "";
       (types || []).forEach((t) => {
         const box = htmlToNode(`
           <button class="edl-credit-box" data-code="${t.code}">
             <span class="title">${t.name}</span>
             <span class="balance">${t.balance ?? 0}</span>
+            <span class="update">Updated: ${t.last_update ?? "—"}</span>
           </button>
         `);
         box.addEventListener("click", () => openApplyForType(t));
         leaveGrid.appendChild(box);
       });
-    } catch (e) {
-      // silent; may be populated later by server-side
-    }
+    } catch {}
   }
 
   async function loadCtoCredits() {
     try {
-      const res = await getJSON(endpoints.ctoCredits); // {available_hours: number}
+      const res = await getJSON(endpoints.ctoCredits);
       ctoGrid.innerHTML = "";
       const box = htmlToNode(`
         <button class="edl-credit-box" data-code="CTO">
           <span class="title">CTO</span>
           <span class="balance">${res.available_hours ?? 0}</span>
+          <span class="update">Updated: ${res.last_update ?? "—"}</span>
         </button>
       `);
       box.addEventListener("click", () =>
         openApplyForType({ code: "CTO", name: "Compensatory Time-Off" })
       );
       ctoGrid.appendChild(box);
-    } catch (e) {
-      // ignore
-    }
+    } catch {}
   }
 
   function openApplyForType(t) {
     applyTitle.textContent = `Apply for ${t.name || t.code}`;
     applyLeaveTypeInput.value = t.code;
-    // Build minimal dynamic fields (date range + reason). Server validates specifics per type.
     applyDynamicFields.innerHTML = `
       <label class="edl-field">
         <span>Start Date</span>
@@ -137,7 +144,7 @@
       </label>
       <label class="edl-field">
         <span>Reason</span>
-        <textarea name="reason" rows="3" placeholder="Reason for leave" required></textarea>
+        <textarea name="reason" rows="3" required></textarea>
       </label>
       ${
         t.code === "CTO"
@@ -171,54 +178,46 @@
         await postForm(endpoints.notify, { type: "leave_apply" });
       } catch {}
       alert("Leave application submitted.");
-    } catch (e) {
+    } catch {
       alert("Failed to submit leave application.");
     }
   });
 
-  // 3) Applications table
+  // Applications table
   async function loadApplications() {
-    // Expect HTML rows or JSON; try HTML tbody rows first.
     try {
       const resp = await fetch(endpoints.applicationsTable, {
         credentials: "include",
       });
       if (resp.ok) {
         const html = await resp.text();
-        // If endpoint returns a full table, extract rows; else assume it's rows only.
         const tmp = document.createElement("div");
         tmp.innerHTML = html;
         const rows = tmp.querySelectorAll("tbody tr, tr");
         applicationsBody.innerHTML = "";
         rows.forEach((r) => {
-          // Add a "View" action if missing
-          const lastCell = r.lastElementChild;
           const ref = r.firstElementChild?.textContent?.trim() || "";
+          const lastCell = r.lastElementChild;
           if (!lastCell || !/View/i.test(lastCell.textContent)) {
             const td = document.createElement("td");
             td.innerHTML = `<button class="btn btn-link view-app" data-ref="${ref}">View</button>`;
             r.appendChild(td);
           } else {
-            // rewrite to a button for consistency, keep any data-ref if present
             lastCell.innerHTML = `<button class="btn btn-link view-app" data-ref="${ref}">View</button>`;
           }
           applicationsBody.appendChild(r);
         });
-        // bind view handlers
         qsa(".view-app", applicationsBody).forEach((btn) => {
           btn.addEventListener("click", () =>
             openApplicationDetails(btn.dataset.ref)
           );
         });
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch {}
   }
 
-  async function openApplicationDetails(ref) {
+  function openApplicationDetails(ref) {
     currentViewApplicationId = ref;
-    // If you have a details endpoint, call it; else, compose from table row content.
     const row = qsa("tr", applicationsBody).find(
       (tr) => tr.firstElementChild?.textContent?.trim() === ref
     );
@@ -227,8 +226,9 @@
       kv = [
         ["Reference #", row.children[0]?.textContent?.trim() || "—"],
         ["Type", row.children[1]?.textContent?.trim() || "—"],
-        ["Date/s", row.children[2]?.textContent?.trim() || "—"],
-        ["Status", row.children[3]?.textContent?.trim() || "—"],
+        ["Status", row.children[2]?.textContent?.trim() || "—"],
+        ["Approver", row.children[3]?.textContent?.trim() || "—"],
+        ["Dates", row.children[4]?.textContent?.trim() || "—"],
       ];
     }
     viewDetails.innerHTML = kv
@@ -258,12 +258,13 @@
       closeDialog(viewModal);
       await loadApplications();
       alert("Application canceled.");
-    } catch (e) {
+    } catch {
       alert("Failed to cancel application.");
     }
   });
 
-  // Init
+  // Init load
+  loadPersonalDetails();
   loadLeaveCredits();
   loadCtoCredits();
   loadApplications();

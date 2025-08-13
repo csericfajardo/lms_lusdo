@@ -1,275 +1,292 @@
-/* employee_dashboard_style.css */
-/* Mobile-first, complements hr_dashboard.css; adjust CSS vars to match your theme */
+/* ==============================
+   Employee Dashboard — Final
+   ============================== */
+
 :root {
-    --edl-bg: #f7f8fb;
-    --edl-card: #ffffff;
-    --edl-text: #1f2937;
-    --edl-sub: #6b7280;
-    --edl-primary: #1d4ed8;
-    --edl-danger: #b91c1c;
-    --edl-border: #e5e7eb;
-    --edl-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .04);
-    --edl-radius: 14px;
+    --dark: #393e46;
+    --accent: #0092ca;
+    --light: #EEEEEE;
+    --accent-light: #b3e5fc;
+    --success-light: #c8e6c9;
+    --warning-light: #fff9c4;
+    --danger-light: #ffcccb;
+    --cancelled-light: #eceff1;
+    --radius: 10px;
 }
 
-* {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    height: 100%;
-}
-
+/* Base styles */
 body {
     margin: 0;
-    background: var(--edl-bg);
-    color: var(--edl-text);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.35;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9375rem;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.5;
+}
+
+h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--dark);
 }
 
 /* Header */
 .edl-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
-    background: var(--edl-card);
-    box-shadow: var(--edl-shadow);
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--dark);
+    color: var(--light);
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 100;
 }
 
 .edl-header-left {
     display: flex;
-    gap: 8px;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.15rem;
 }
 
-.icon-btn {
-    border: 1px solid var(--edl-border);
-    background: #fff;
-    padding: 6px 8px;
-    border-radius: 10px;
-    box-shadow: var(--edl-shadow);
+.edl-app-title {
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-.logout-form {
-    margin: 0;
-}
-
-.logout-btn {
-    border: 1px solid var(--edl-border);
-    background: #fff;
-    padding: 6px 10px;
-    border-radius: 10px;
-    box-shadow: var(--edl-shadow);
+.edl-identity-inline {
+    font-size: 0.8rem;
+    color: #ccc;
 }
 
 .edl-header-right {
-    font-weight: 700;
-    font-size: 16px;
-}
-
-/* Identity lines */
-.edl-identity {
-    padding: 10px 12px;
-}
-
-.edl-identity-line {
     display: flex;
-    gap: 8px;
-    margin: 6px 0;
-    font-size: 14px;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.edl-identity-line .lbl {
-    color: var(--edl-sub);
-    min-width: 120px;
+.icon-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--light);
+}
+
+.logout-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--light);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.logout-btn:hover {
+    background: var(--accent-light);
+    color: var(--dark);
 }
 
 /* Sections */
 .edl-section {
-    padding: 8px 12px 2px;
+    margin: 1rem 0;
+    padding: 0 1rem;
 }
 
 .edl-section-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin: 12px 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
 }
 
+/* Credit boxes grid */
 .edl-grid-2 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* two per row on mobile */
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
 }
 
+/* Credit box style */
 .edl-credit-box {
-    background: var(--edl-card);
-    border: 1px solid var(--edl-border);
-    border-radius: var(--edl-radius);
-    padding: 12px;
-    text-align: left;
-    box-shadow: var(--edl-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    background: var(--light);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.edl-credit-box:hover {
+    transform: translateY(-3px);
+    background: var(--accent-light);
 }
 
 .edl-credit-box .title {
-    font-size: 14px;
-    color: var(--edl-sub);
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
 }
 
 .edl-credit-box .balance {
-    font-weight: 800;
-    font-size: 20px;
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
 }
 
-/* Table */
+.edl-credit-box .update {
+    display: block;
+    font-size: 0.75rem;
+    color: #777;
+}
+
+/* Table wrap */
 .edl-table-wrap {
-    background: var(--edl-card);
-    border: 1px solid var(--edl-border);
-    border-radius: var(--edl-radius);
-    box-shadow: var(--edl-shadow);
-    overflow: hidden;
+    overflow-x: auto;
 }
 
+/* Applications table */
 .edl-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.8125rem;
 }
 
 .edl-table th,
 .edl-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--edl-border);
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
 }
 
-.edl-table thead th {
-    background: #f3f4f6;
-    text-align: left;
-    font-weight: 700;
+.edl-table th {
+    background: var(--dark);
+    color: var(--light);
+    font-weight: 500;
+}
+
+.edl-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status colors */
+.status-pending {
+    background: var(--warning-light);
+}
+
+.status-approved {
+    background: var(--success-light);
+}
+
+.status-rejected {
+    background: var(--danger-light);
+}
+
+.status-cancelled {
+    background: var(--cancelled-light);
 }
 
 /* Buttons */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--edl-border);
-    background: #fff;
-    font-size: 14px;
-}
-
-.btn-primary {
-    background: var(--edl-primary);
-    border-color: var(--edl-primary);
-    color: #fff;
-}
-
-.btn-danger {
-    background: var(--edl-danger);
-    border-color: var(--edl-danger);
-    color: #fff;
-}
-
-.btn-ghost {
-    background: transparent;
-    border-color: transparent;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
 }
 
 .btn-link {
-    padding: 0;
     background: none;
-    border: none;
-    color: var(--edl-primary);
+    color: var(--accent);
     text-decoration: underline;
+    cursor: pointer;
 }
 
-/* Modal */
+.btn-primary {
+    background: var(--accent);
+    color: var(--light);
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+/* Modals */
 .edl-modal {
     border: none;
+    border-radius: var(--radius);
     padding: 0;
-    width: min(92vw, 520px);
-}
-
-.edl-modal::backdrop {
-    background: rgba(0, 0, 0, .35);
+    max-width: 420px;
+    width: 90%;
 }
 
 .edl-modal-card {
-    background: var(--edl-card);
-    border-radius: var(--edl-radius);
-    box-shadow: var(--edl-shadow);
-    padding: 14px;
-    border: 1px solid var(--edl-border);
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
 }
 
-.edl-modal-card h3 {
-    margin: 0 0 10px;
-    font-size: 16px;
+/* Key-value display in modal */
+.edl-kv {
+    font-size: 0.8125rem;
 }
 
-.edl-modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 12px;
+.edl-kv .k {
+    font-weight: 500;
+    display: block;
+    color: var(--dark);
+}
+
+.edl-kv .v {
+    display: block;
+    color: #555;
+    margin-bottom: 0.5rem;
 }
 
 /* Fields */
 .edl-field {
-    display: grid;
-    gap: 6px;
-    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
 }
 
 .edl-field input,
-.edl-field textarea,
-.edl-field select {
-    width: 100%;
-    border: 1px solid var(--edl-border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
-    background: #fff;
+.edl-field textarea {
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    padding: 0.4rem;
+    font-size: 0.8125rem;
 }
 
-/* Key/value list */
-.edl-kv {
-    display: grid;
-    gap: 6px;
-}
-
-.edl-kv .k {
-    color: var(--edl-sub);
-    display: inline-block;
-    min-width: 140px;
-}
-
-.edl-kv .v {
-    font-weight: 600;
-}
-
-/* Larger screens */
-@media (min-width: 768px) {
-    .edl-header-right {
-        font-size: 18px;
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
     }
 
-    .edl-section-title {
-        font-size: 16px;
+    .edl-grid-2 {
+        gap: 0.5rem;
+    }
+
+    .edl-credit-box {
+        padding: 0.5rem;
+    }
+
+    .edl-credit-box .title {
+        font-size: 0.8rem;
     }
 
     .edl-credit-box .balance {
-        font-size: 22px;
+        font-size: 0.9rem;
     }
 }
