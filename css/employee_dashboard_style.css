@@ -1,0 +1,275 @@
+/* employee_dashboard_style.css */
+/* Mobile-first, complements hr_dashboard.css; adjust CSS vars to match your theme */
+:root {
+    --edl-bg: #f7f8fb;
+    --edl-card: #ffffff;
+    --edl-text: #1f2937;
+    --edl-sub: #6b7280;
+    --edl-primary: #1d4ed8;
+    --edl-danger: #b91c1c;
+    --edl-border: #e5e7eb;
+    --edl-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .04);
+    --edl-radius: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--edl-bg);
+    color: var(--edl-text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.35;
+}
+
+/* Header */
+.edl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--edl-card);
+    box-shadow: var(--edl-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.edl-header-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.icon-btn {
+    border: 1px solid var(--edl-border);
+    background: #fff;
+    padding: 6px 8px;
+    border-radius: 10px;
+    box-shadow: var(--edl-shadow);
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-btn {
+    border: 1px solid var(--edl-border);
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 10px;
+    box-shadow: var(--edl-shadow);
+}
+
+.edl-header-right {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* Identity lines */
+.edl-identity {
+    padding: 10px 12px;
+}
+
+.edl-identity-line {
+    display: flex;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+.edl-identity-line .lbl {
+    color: var(--edl-sub);
+    min-width: 120px;
+}
+
+/* Sections */
+.edl-section {
+    padding: 8px 12px 2px;
+}
+
+.edl-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 12px 0 8px;
+}
+
+.edl-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* two per row on mobile */
+    gap: 10px;
+}
+
+.edl-credit-box {
+    background: var(--edl-card);
+    border: 1px solid var(--edl-border);
+    border-radius: var(--edl-radius);
+    padding: 12px;
+    text-align: left;
+    box-shadow: var(--edl-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.edl-credit-box .title {
+    font-size: 14px;
+    color: var(--edl-sub);
+}
+
+.edl-credit-box .balance {
+    font-weight: 800;
+    font-size: 20px;
+}
+
+/* Table */
+.edl-table-wrap {
+    background: var(--edl-card);
+    border: 1px solid var(--edl-border);
+    border-radius: var(--edl-radius);
+    box-shadow: var(--edl-shadow);
+    overflow: hidden;
+}
+
+.edl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.edl-table th,
+.edl-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--edl-border);
+}
+
+.edl-table thead th {
+    background: #f3f4f6;
+    text-align: left;
+    font-weight: 700;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--edl-border);
+    background: #fff;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: var(--edl-primary);
+    border-color: var(--edl-primary);
+    color: #fff;
+}
+
+.btn-danger {
+    background: var(--edl-danger);
+    border-color: var(--edl-danger);
+    color: #fff;
+}
+
+.btn-ghost {
+    background: transparent;
+    border-color: transparent;
+}
+
+.btn-link {
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--edl-primary);
+    text-decoration: underline;
+}
+
+/* Modal */
+.edl-modal {
+    border: none;
+    padding: 0;
+    width: min(92vw, 520px);
+}
+
+.edl-modal::backdrop {
+    background: rgba(0, 0, 0, .35);
+}
+
+.edl-modal-card {
+    background: var(--edl-card);
+    border-radius: var(--edl-radius);
+    box-shadow: var(--edl-shadow);
+    padding: 14px;
+    border: 1px solid var(--edl-border);
+}
+
+.edl-modal-card h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.edl-modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* Fields */
+.edl-field {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.edl-field input,
+.edl-field textarea,
+.edl-field select {
+    width: 100%;
+    border: 1px solid var(--edl-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    background: #fff;
+}
+
+/* Key/value list */
+.edl-kv {
+    display: grid;
+    gap: 6px;
+}
+
+.edl-kv .k {
+    color: var(--edl-sub);
+    display: inline-block;
+    min-width: 140px;
+}
+
+.edl-kv .v {
+    font-weight: 600;
+}
+
+/* Larger screens */
+@media (min-width: 768px) {
+    .edl-header-right {
+        font-size: 18px;
+    }
+
+    .edl-section-title {
+        font-size: 16px;
+    }
+
+    .edl-credit-box .balance {
+        font-size: 22px;
+    }
+}
