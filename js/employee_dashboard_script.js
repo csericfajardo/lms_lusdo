@@ -88,9 +88,120 @@
     }
   }
 
-  // Personal details modal open
   personalBtn?.addEventListener("click", () => {
     openDialog(personalModal);
+  });
+
+  // Field builder (HR style)
+  function buildField(field) {
+    const label = field
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+    switch (field) {
+      case "date_from":
+      case "date_to":
+      case "effective_date":
+      case "wife_delivery_date":
+      case "expected_delivery_date":
+      case "actual_delivery_date":
+        return `
+          <label class="edl-field">
+            <span>${label}</span>
+            <input type="date" name="${field}" required>
+          </label>`;
+      case "number_of_days":
+        return `
+          <label class="edl-field">
+            <span>Number of Days</span>
+            <input type="number" step="0.01" min="0" name="number_of_days" required>
+          </label>`;
+      case "medical_certificate":
+      case "marriage_certificate":
+      case "birth_certificate":
+      case "admission_slip":
+      case "proof_if_required":
+      case "injury_report":
+      case "retirement_papers":
+      case "clearance":
+      case "adoption_decree":
+        return `
+          <label class="edl-field">
+            <span>${label}</span>
+            <input type="file" name="${field}" required>
+          </label>`;
+      default:
+        return `
+          <label class="edl-field">
+            <span>${label}</span>
+            <input type="text" name="${field}" required>
+          </label>`;
+    }
+  }
+
+  // Open Apply Leave modal dynamically
+  async function openApplyForType(t) {
+    applyDynamicFields.innerHTML = "";
+    applyTitle.textContent = `Apply for ${t.name || t.code}`;
+    applyLeaveTypeInput.value = t.code;
+
+    // CTO case
+    if (t.code === "CTO") {
+      applyDynamicFields.innerHTML = `
+        ${buildField("date_from")}
+        ${buildField("date_to")}
+        ${buildField("number_of_days")}
+        <label class="edl-field">
+          <span>CTO Hours to Use</span>
+          <input type="number" name="cto_hours" step="0.5" min="0.5">
+        </label>
+        <input type="hidden" name="notify_hr" value="1">
+      `;
+      openDialog(applyModal);
+      return;
+    }
+
+    // Non-CTO: fetch required fields dynamically
+    try {
+      const res = await getJSON(
+        `/depedlu_lms/users/empdash_get_leave_fields.php`,
+        {
+          leave_type_id: t.leave_type_id,
+        }
+      );
+      if (!res.success) {
+        alert(res.message || "Failed to load leave fields.");
+        return;
+      }
+      (res.required_fields || []).forEach((f) => {
+        applyDynamicFields.innerHTML += buildField(f);
+      });
+      applyDynamicFields.innerHTML += `<input type="hidden" name="notify_hr" value="1">`;
+      openDialog(applyModal);
+    } catch {
+      alert("Error fetching leave fields.");
+    }
+  }
+
+  applyCancel?.addEventListener("click", () => closeDialog(applyModal));
+
+  applyForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(applyForm).entries());
+    try {
+      await postForm(endpoints.applyLeave, data);
+      closeDialog(applyModal);
+      await Promise.all([
+        loadApplications(),
+        loadLeaveCredits(),
+        loadCtoCredits(),
+      ]);
+      try {
+        await postForm(endpoints.notify, { type: "leave_apply" });
+      } catch {}
+      alert("Leave application submitted.");
+    } catch {
+      alert("Failed to submit leave application.");
+    }
   });
 
   // Leave credits
@@ -100,7 +211,9 @@
       leaveGrid.innerHTML = "";
       (types || []).forEach((t) => {
         const box = htmlToNode(`
-          <button class="edl-credit-box" data-code="${t.code}">
+          <button class="edl-credit-box" 
+            data-code="${t.code}" 
+            data-id="${t.leave_type_id}">
             <span class="title">${t.name}</span>
             <span class="balance">${t.balance ?? 0}</span>
             <span class="update">Updated: ${t.last_update ?? "—"}</span>
@@ -130,60 +243,7 @@
     } catch {}
   }
 
-  function openApplyForType(t) {
-    applyTitle.textContent = `Apply for ${t.name || t.code}`;
-    applyLeaveTypeInput.value = t.code;
-    applyDynamicFields.innerHTML = `
-      <label class="edl-field">
-        <span>Start Date</span>
-        <input type="date" name="start_date" required />
-      </label>
-      <label class="edl-field">
-        <span>End Date</span>
-        <input type="date" name="end_date" required />
-      </label>
-      <label class="edl-field">
-        <span>Reason</span>
-        <textarea name="reason" rows="3" required></textarea>
-      </label>
-      ${
-        t.code === "CTO"
-          ? `
-        <label class="edl-field">
-          <span>CTO Hours to Use</span>
-          <input type="number" name="cto_hours" step="0.5" min="0.5" />
-        </label>
-      `
-          : ""
-      }
-      <input type="hidden" name="notify_hr" value="1" />
-    `;
-    openDialog(applyModal);
-  }
-
-  applyCancel?.addEventListener("click", () => closeDialog(applyModal));
-
-  applyForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(applyForm).entries());
-    try {
-      await postForm(endpoints.applyLeave, data);
-      closeDialog(applyModal);
-      await Promise.all([
-        loadApplications(),
-        loadLeaveCredits(),
-        loadCtoCredits(),
-      ]);
-      try {
-        await postForm(endpoints.notify, { type: "leave_apply" });
-      } catch {}
-      alert("Leave application submitted.");
-    } catch {
-      alert("Failed to submit leave application.");
-    }
-  });
-
-  // Applications table
+  // Applications
   async function loadApplications() {
     try {
       const resp = await fetch(endpoints.applicationsTable, {
@@ -263,7 +323,7 @@
     }
   });
 
-  // Init load
+  // Init
   loadPersonalDetails();
   loadLeaveCredits();
   loadCtoCredits();
