@@ -1,507 +1,389 @@
 /* ==============================
-   hr_dashboard.css (Final)
+   hr_dashboard.css (Calm / Modern — Reworked Mobile)
    ============================== */
 
 /* ------------------------------------------------
-   1) Color Palette Variables
+   1) Color System (light, accessible)
    ------------------------------------------------ */
-:root {
-    --dark: #393e46;
-    --accent: #0092ca;
-    --light: #EEEEEE;
-    /* Pastel variants */
-    --accent-light: #b3e5fc;
-    --success-light: #c8e6c9;
-    --warning-light: #fff9c4;
-    --danger-light: #ffcccb;
-    --cancelled-light: #eceff1;
+:root{
+  --bg:         #F8FAFC;  /* very light slate */
+  --card:       #FFFFFF;
+  --text:       #1F2937;  /* slate-800 */
+  --muted:      #6B7280;  /* slate-500 */
+  --border:     #E5E7EB;  /* slate-200 */
+
+  --accent-500: #0EA5E9;  /* sky-500 */
+  --accent-600: #0284C7;  /* sky-600 */
+  --accent-700: #0369A1;  /* sky-700 */
+
+  /* Status pastels */
+  --success-100: #DCFCE7;
+  --warning-100: #FEF9C3;
+  --danger-100:  #FEE2E2;
+  --cancel-100:  #F3F4F6;
+
+  --success-600: #16A34A;
+  --warning-600: #CA8A04;
+  --danger-600:  #DC2626;
+
+  --shadow-sm:  0 1px 2px rgba(17,24,39,.04);
+  --shadow-lg:  0 10px 18px rgba(17,24,39,.08);
 }
 
 /* ------------------------------------------------
-   2) Global Styles
+   2) Global
    ------------------------------------------------ */
-html {
-    font-size: 16px;
-    /* 1rem = 16px */
+html { font-size: 15px; }
+body{
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
-    background: var(--light);
-    color: var(--dark);
-}
-
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 /* ------------------------------------------------
-   3) Sidebar
+   3) Sidebar (light with divider)
    ------------------------------------------------ */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 250px;
-    background: var(--dark);
-    color: var(--light);
-    padding-top: 20px;
-    overflow-y: auto;
-    z-index: 1050;
+.sidebar{
+  position: fixed; top:0; left:0; height:100%; width:250px;
+  background: #fff;
+  color: var(--text);
+  padding: 16px 0;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 1050;
 }
-
-.sidebar a {
-    display: block;
-    color: var(--light);
-    padding: 12px 20px;
-    text-decoration: none;
-    transition: background 0.2s;
+.sidebar h4{
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  margin: 0 16px 8px;
+  color: #111827;
 }
-
-.sidebar a:hover {
-    background: var(--accent);
+.sidebar a{
+  display:block; padding: 10px 16px; text-decoration:none;
+  color: var(--text);
+  border-left: 3px solid transparent;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
 }
-
-.sidebar-toggle {
-    display: none;
-    background: var(--dark);
-    color: var(--light);
-    border: none;
-    cursor: pointer;
+.sidebar a:hover{
+  background: #F1F5F9; /* slate-100 */
+  border-left-color: var(--accent-600);
+  color: #0F172A; /* slate-900 */
 }
-
-@media (max-width: 768px) {
-    .sidebar {
-        left: -250px;
-        transition: left 0.3s;
-    }
-
-    .sidebar.show {
-        left: 0;
-    }
-
-    .sidebar-toggle {
-        display: block;
-        width: 100%;
-        padding: 12px;
-        text-align: left;
-        font-size: 1.125rem;
-    }
-
-    .content {
-        margin-left: 0 !important;
-    }
+.sidebar-toggle{
+  display:none; width:100%; padding:12px; text-align:left;
+  background:#fff; color: var(--text); border: 1px solid var(--border);
+  cursor:pointer; font-size: 1rem;
 }
 
 /* ------------------------------------------------
    4) Main Content & Cards
    ------------------------------------------------ */
-.content {
-    margin-left: 250px;
-    padding: 20px;
+.content{
+  margin-left: 250px;
+  padding: 20px;
 }
-
-.cards {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+.cards{
+  display:flex; gap: 1rem; flex-wrap: wrap;
 }
-
-.card {
-    background: var(--light);
-    border: 2px solid var(--accent);
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 250px;
-    text-align: center;
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  width: 260px;
+  text-align:center;
+  transition: box-shadow .18s ease, transform .18s ease;
 }
-
-.card h3 {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--accent);
+.card:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
-
-.card a {
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 1rem;
+.card h3{
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--accent-700);
+  margin-bottom: .25rem;
 }
-
-.card a:hover {
-    text-decoration: underline;
+.card a{
+  color: var(--accent-600);
+  text-decoration: none;
+  font-size: .95rem;
 }
+.card a:hover{ text-decoration: underline; }
 
 /* ------------------------------------------------
    5) Typography
    ------------------------------------------------ */
-h1,
-.card h3 {
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-h2 {
-    font-size: 1.75rem;
-    font-weight: 600;
-}
-
-h3 {
-    font-size: 1.5rem;
-    font-weight: 500;
-}
-
-h4 {
-    font-size: 1.25rem;
-    font-weight: 500;
-}
-
-.btn,
-label {
-    font-size: 1rem;
-}
+h1{ font-size:1.5rem; font-weight: 600; }
+h2{ font-size:1.35rem; font-weight: 600; }
+h3{ font-size:1.2rem;  font-weight: 600; }
+h4{ font-size:1.05rem; font-weight: 600; }
+.btn, label{ font-size: .95rem; }
 
 /* ------------------------------------------------
    6) Buttons
    ------------------------------------------------ */
-.btn-primary {
-    background: var(--accent);
-    border: 2px solid var(--accent);
-    color: var(--light);
-    transition: background 0.2s, border-color 0.2s;
+.btn-primary{
+  background: var(--accent-600);
+  border: 1px solid var(--accent-600);
+  color: #fff;
+  transition: background .18s, border-color .18s, transform .06s;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.btn-primary:hover{
+  background: var(--accent-700);
+  border-color: var(--accent-700);
+}
+.btn-primary:active{ transform: translateY(1px); }
+
+.btn-success{
+  background: var(--success-600);
+  border: 1px solid var(--success-600);
+  color: #fff;
+  border-radius: 10px;
+}
+.btn-success:hover{
+  background: #15803D; /* green-700 */
+  border-color: #15803D;
 }
 
-.btn-primary:hover {
-    background: var(--dark);
-    border-color: var(--dark);
+.btn-secondary{
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+}
+.btn-secondary:hover{
+  border-color: var(--accent-600);
+  color: var(--accent-700);
 }
 
-.btn-success {
-    background: var(--dark);
-    border: 2px solid var(--dark);
-    color: var(--light);
+/* Action buttons (Edit/Delete) */
+.action-buttons .btn-warning{
+  background:#fff;
+  border: 1px solid var(--accent-600);
+  color: var(--accent-700);
+  transition: background .18s ease, color .18s ease;
+  border-radius: 10px;
 }
-
-.btn-success:hover {
-    background: var(--accent);
-    border-color: var(--accent);
+.action-buttons .btn-warning:hover{
+  background:#E0F2FE; /* sky-100 */
+  color:#0C4A6E;      /* sky-900 */
 }
-
-.btn-secondary {
-    background: var(--light);
-    border: 2px solid var(--dark);
-    color: var(--dark);
+.action-buttons .btn-danger{
+  background:#fff;
+  border: 1px solid var(--danger-600);
+  color: var(--danger-600);
+  border-radius: 10px;
 }
-
-.btn-secondary:hover {
-    background: var(--dark);
-    color: var(--light);
-}
-
-/* Personal Details Edit/Delete */
-.action-buttons .btn-warning {
-    background: var(--light);
-    border: 2px solid var(--accent);
-    color: var(--accent);
-    transition: background 0.2s;
-}
-
-.action-buttons .btn-warning:hover {
-    background: var(--accent-light);
-    color: var(--dark);
-}
-
-.action-buttons .btn-danger {
-    background: var(--light);
-    border: 2px solid #f73444;
-    color: #f73444;
-}
-
-.action-buttons .btn-danger:hover {
-    background: var(--danger-light);
-    color: var(--dark);
+.action-buttons .btn-danger:hover{
+  background: var(--danger-100);
+  color:#7F1D1D; /* red-900 */
 }
 
 /* ------------------------------------------------
    7) Tables
    ------------------------------------------------ */
-/* Use Inter 400 for table headers */
-.table th {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 1rem;
-    /* or 0.9375rem if you want them a touch smaller */
-    color: var(--dark);
-    background: var(--dark);
-    color: var(--light);
-    text-transform: none;
-    /* remove any uppercase transforms */
+.table{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table th{
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: .95rem;
+  background: #F9FAFB; /* neutral header */
+  color: #111827;
+  border-bottom: 1px solid var(--border);
+}
+.table td{
+  background: #fff;
+  color: var(--text);
+  font-size: .95rem;
+  border-top: 1px solid var(--border);
 }
 
-.table td {
-    background: var(--light);
-    color: var(--dark);
-    font-size: 1rem;
-}
+/* Optional: stable desktop widths
+.table { table-layout: fixed; width: 100%; }
+.table th:nth-child(1), .table td:nth-child(1){ width: 8%; }
+.table th:nth-child(2), .table td:nth-child(2){ width: 18%; }
+.table th:nth-child(3), .table td:nth-child(3){ width: 20%; }
+.table th:nth-child(4), .table td:nth-child(4){ width: 10%; }
+.table th:nth-child(5), .table td:nth-child(5){ width: 14%; }
+.table th:nth-child(6), .table td:nth-child(6){ width: 15%; }
+.table th:nth-child(7), .table td:nth-child(7){ width: 15%; }
+*/
 
 /* ------------------------------------------------
    8) Leave Credit Boxes
    ------------------------------------------------ */
-.leave-credits-container {
-    margin-top: 20px;
+.leave-credits-container{
+  margin-top: 20px;
+  display:flex; flex-wrap:wrap; gap: 1rem;
 }
-
-.leave-credit-box {
-    background: var(--light);
-    border: 2px solid var(--accent);
-    border-radius: 8px;
-    padding: 15px;
-    width: 170px;
-    height: 130px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: transform 0.2s, background 0.2s;
-    cursor: pointer;
+.leave-credit-box{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  width: 230px;
+  min-height: 130px;
+  display:flex; flex-direction: column; align-items:center; justify-content:flex-start;
+  text-align:center;
+  cursor:pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .18s ease, transform .18s ease, background .18s ease;
 }
-
-.leave-credit-box:hover {
-    transform: translateY(-4px);
-    background: #f0f8ff;
+.leave-credit-box:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background:#F8FAFC;
 }
-
 .leave-credit-box h5,
-.leave-credit-box h6 {
-    font-size: 1.125rem;
-    color: var(--accent);
-    margin-bottom: 8px;
+.leave-credit-box h6{
+  font-size: 1rem;
+  color: var(--accent-700);
+  margin: 0 0 8px;
+  line-height:1.25;
+  white-space:normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align:center;
+}
+.leave-credit-box p{
+  font-size: .875rem;
+  margin: 2px 0;
+  color: var(--text);
 }
 
-.leave-credit-box p {
-    font-size: 0.875rem;
-    margin: 2px 0;
-    color: var(--dark);
+/* “Add” dashed box */
+.leave-credit-box.add-credit-box{
+  width: 120px; height: 100px;
+  border: 2px dashed var(--accent-600);
+  align-self: center;
 }
+.leave-credit-box.add-credit-box h5{ margin:0; font-size:1.4rem; }
 
 /* ------------------------------------------------
-   9) Status Cells (Pastel)
+   9) Status Cells (soft pastels)
    ------------------------------------------------ */
-.status-cell.pending {
-    background: var(--warning-light);
-    color: var(--dark);
-}
-
-.status-cell.approved {
-    background: var(--success-light);
-    color: var(--dark);
-}
-
-.status-cell.rejected {
-    background: var(--danger-light);
-    color: var(--dark);
-}
-
-.status-cell.cancelled {
-    background: var(--cancelled-light);
-    color: var(--dark);
-}
-
-.status-cell select {
-    width: 100%;
-    padding: 4px;
+.status-cell.pending   { background: var(--warning-100); color: #713F12; } /* amber-900 */
+.status-cell.approved  { background: var(--success-100); color: #14532D; } /* green-900 */
+.status-cell.rejected  { background: var(--danger-100);  color: #7F1D1D; } /* red-900 */
+.status-cell.cancelled { background: var(--cancel-100);  color: #374151; } /* slate-700 */
+.status-cell select{
+  width:100%; padding:4px; border:1px solid var(--border);
+  background:#fff; color: var(--text);
+  border-radius:6px;
 }
 
 /* ------------------------------------------------
    10) Modals
    ------------------------------------------------ */
-.modal .form-group {
-    margin-bottom: 0.5rem !important;
+.modal .form-group{ margin-bottom: .5rem !important; }
+.modal .form-group>label{ margin-bottom: .25rem; }
+.modal-body{ padding-top: 1rem; padding-bottom: 1rem; }
+
+.fade .modal-dialog{
+  transition: transform .15s ease-out, opacity .15s ease-out !important;
+  transform: scale(.98);
+  opacity: 0;
+}
+.fade.show .modal-dialog{ transform: scale(1); opacity:1; }
+.fade .modal-backdrop{ transition: opacity .15s linear !important; }
+
+.modal-content{
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
-.modal .form-group>label {
-    margin-bottom: 0.25rem;
+/* Personal Details table */
+.employee-details table{
+  width:100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  border-collapse: collapse;
+  overflow: hidden;
+  background: #fff;
 }
-
-.modal-body {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-/* Faster, smooth fade + slide */
-/* Pop-up scale + fade modal effect */
-.fade .modal-dialog {
-    transition: transform 0.15s ease-out, opacity 0.15s ease-out !important;
-    transform: scale(0.8);
-    opacity: 0;
-}
-
-.fade.show .modal-dialog {
-    transform: scale(1);
-    opacity: 1;
-}
-
-/* Tweak backdrop to match speed */
-.fade .modal-backdrop {
-    transition: opacity 0.15s linear !important;
-}
-/* ─── Personal Details Table Styling ───────────────────────────────────── */
-.employee-details table {
-    width: 100%;
-    border: 1px solid #ddd;
-    /* outer light border */
-    border-radius: 6px;
-    /* slight rounding */
-    border-collapse: collapse;
-    /* collapse inner borders */
-    overflow: hidden;
-    /* clip the rounded corners */
-}
-
 .employee-details table th,
-.employee-details table td {
-    
-        /* or whatever fixed width you prefer */
-    padding: 8px 12px;
-    /* comfortable padding */
-    border-bottom: 1px solid #878484;
-    /* subtle row divider */
-    text-align: left;
-    /* left-align everything */
+.employee-details table td{
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align:left;
 }
-
-.employee-details table th {
-    width: 20px;
-    /* a soft accent background */
-    font-weight: 500;
+.employee-details table th{
+  width: 20px;
+  font-weight: 500;
+  color:#111827;
 }
-
-/* Remove the divider on the last row */
 .employee-details table tr:last-child th,
-.employee-details table tr:last-child td {
-    border-bottom: none;
-}
+.employee-details table tr:last-child td{ border-bottom: none; }
 
- /* Smaller dashed “add” boxes */
-/* make the + box 50×50, center its “+” text, and vertically center it in the row */
-.leave-credit-box.add-credit-box {
-    width: 120px;
-    height: 100px;
-    border: 2px dashed var(--accent);
-    display: flex;
-    align-items: center;
-    /* center the “+” inside */
-    justify-content: center;
-    cursor: pointer;
-    align-self: center;
-    /* vertically center this box among the 130px-tall siblings */
-}
+/* Notifications */
+#notifBadge{ min-width:20px; }
+#notificationModal .modal-content{ box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+#notificationModal #notificationList li:hover{ background:#F9FAFB; }
+#notificationModal .modal-header h6{ color:#111827; }
+#notificationModal small{ display:block; margin-top:2px; color: var(--muted); }
 
-/* optionally tweak the plus size */
-.leave-credit-box.add-credit-box h5 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.leave-credit-box {
-    /* was: height: 130px; justify-content: center; */
-    min-height: 130px;
-    height: auto;
-    justify-content: flex-start;
-    /* stack from top */
-}
-
-/* simple wrapping (no cut) */
-.leave-credit-box h5,
-.leave-credit-box h6 {
-    font-size: 1.125rem;
-    color: var(--accent);
-    margin: 0 0 8px;
-    line-height: 1.2;
-    white-space: normal;
-    word-break: break-word;
-    /* fallback */
-    overflow-wrap: anywhere;
-    /* modern wrap */
-    text-align: center;
-}
-
-#notifBadge {
-    min-width: 20px;
-}
-
-/* Notification Modal Minimal Style */
-#notificationModal .modal-content {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-#notificationModal #notificationList li:hover {
-    background: #f9f9f9;
-}
-
-#notificationModal .modal-header h6 {
-    color: #333;
-}
-
-#notificationModal small {
-    display: block;
-    margin-top: 2px;
-}
 /* ------------------------------------------------
-   11) Mobile Full-Width & Responsive Type
+   11) Mobile Tweaks (Reworked for Professional UX)
    ------------------------------------------------ */
-@media (max-width: 768px) {
-    .content {
-        margin-left: 0 !important;
-        padding-left: 15px;
-        padding-right: 15px;
-    }
+@media (max-width: 768px){
+  /* Sidebar collapses; toggle appears */
+  .sidebar{ left:-250px; transition:left .28s ease; }
+  .sidebar.show{ left:0; }
+  .sidebar-toggle{ display:block; }
 
-    .tab-content {
-        width: 100% !important;
-        margin: 0 !important;
-        font-size: 0.875rem;
-    }
+  /* Content spacing */
+  .content{
+    margin-left: 0 !important;
+    padding: 12px;
+  }
 
-    html {
-        font-size: 14px;
-    }
+  /* Type scale */
+  html{ font-size: 14px; }
+  h1{ font-size:1.25rem; }
+  h2{ font-size:1.15rem; }
+  h3{ font-size:1.05rem; }
+  h4{ font-size:1rem; }
+  .btn, label{ font-size: .9rem; }
 
-    h1,
-    .card h3 {
-        font-size: 1.75rem;
-    }
+  /* Cards stack */
+  .cards{ flex-direction: column; align-items: stretch; }
+  .card{ width: 100% !important; }
 
-    h2 {
-        font-size: 1.5rem;
-    }
+  /* Leave credit boxes: 85% width, centered (not full width) */
+  .leave-credit-box{
+    width: 85% !important;
+    margin: 0 auto;
+  }
 
-    h3 {
-        font-size: 1.25rem;
-    }
-
-    .btn,
-    label {
-        font-size: 0.9375rem;
-    }
-
-    .leave-credit-box h5,
-    .leave-credit-box h6 {
-        font-size: 1rem;
-    }
-
-    .leave-credit-box p {
-        font-size: 0.8125rem;
-        
-    }
-
-       
-
+  /* Tables: keep clean by horizontal scroll instead of squeezing */
+  .table-responsive{
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+  .table{
+    min-width: 720px; /* prevents column crush; adjust if needed */
+    font-size: .9rem;
+  }
+  .table th, .table td{
+    white-space: nowrap; /* keep each cell on one line */
+    padding: 8px 10px;
+  }
 }
-

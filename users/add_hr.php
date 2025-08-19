@@ -1,95 +1,138 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../config/database.php';
 
 header('Content-Type: application/json');
 
-// 1) Auth guard – only logged-in admins may add HR
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+// ── Auth guard ──
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['admin','super_admin'], true)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized. Admin access required.']);
+    echo json_encode(['success'=>false,'message'=>'Unauthorized']);
     exit();
 }
 
-// 2) Only accept POST
+// ── Method guard ──
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+    echo json_encode(['success'=>false,'message'=>'Method not allowed']);
     exit();
 }
 
-// 3) Read & validate inputs (matches your modal: name="username|email|password")
-$username = trim($_POST['username'] ?? '');
-$email    = trim($_POST['email'] ?? '');
-$password = trim($_POST['password'] ?? '');
+// ── Collect & sanitize inputs ──
+$username        = trim($_POST['username'] ?? '');
+$email           = trim($_POST['email'] ?? '');
+$password        = trim($_POST['password'] ?? '');
+$employee_number = trim($_POST['employee_number'] ?? '');
+$first_name      = trim($_POST['first_name'] ?? '');
+$middle_name     = trim($_POST['middle_name'] ?? '');
+$last_name       = trim($_POST['last_name'] ?? '');
+$position        = trim($_POST['position'] ?? '');
+$office          = trim($_POST['office'] ?? '');
+$employment_type = trim($_POST['employment_type'] ?? '');
+$date_hired      = trim($_POST['date_hired'] ?? '');
+$status          = trim($_POST['status'] ?? 'Active');
 
-if ($username === '' || $email === '' || $password === '') {
-    echo json_encode(['success' => false, 'message' => 'All fields are required.']);
+// ── Basic validation ──
+if (!$username || !$email || !$employee_number || !$first_name || !$last_name || !$position || !$office || !$date_hired) {
+    echo json_encode(['success'=>false,'message'=>'Missing required fields.']);
     exit();
 }
 
-if (!preg_match('/^[A-Za-z0-9._-]{3,50}$/', $username)) {
-    echo json_encode(['success' => false, 'message' => 'Username must be 3–50 chars (letters, numbers, . _ -).']);
-    exit();
-}
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
-    exit();
-}
-
-if (strlen($password) < 8) {
-    echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters long.']);
-    exit();
-}
-
-$hash = password_hash($password, PASSWORD_DEFAULT);
-
-// 4) Duplicate checks (username + email)
 try {
-    // Username unique (your DB has UNIQUE on users.username)
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $stmt->store_result();
-    if ($stmt->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'Username already exists.']);
-        $stmt->close();
-        exit();
-    }
-    $stmt->close();
+    $conn->begin_transaction();
 
-    // Email check (optional but recommended)
-    $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $stmt->store_result();
-    if ($stmt->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'Email is already in use.']);
-        $stmt->close();
-        exit();
-    }
-    $stmt->close();
+    // ── 1. Check if employee already exists by email ──
+    $empId = null;
+    $empCheck = $conn->prepare("SELECT employee_id FROM employees WHERE email=? LIMIT 1");
+    $empCheck->bind_param("s", $email);
+    $empCheck->execute();
+    $empCheck->bind_result($empId);
+    $empCheck->fetch();
+    $empCheck->close();
 
-    // 5) Insert HR user
-    $role = 'hr';
-    $status = 'active';
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, status) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $username, $email, $hash, $role, $status);
-
-    if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'HR added successfully.']);
+    if ($empId) {
+        // ── Update existing employee ──
+        $empSql = "UPDATE employees 
+                      SET employee_number=?, first_name=?, middle_name=?, last_name=?, 
+                          employment_type=?, position=?, office=?, date_hired=?, status=? 
+                    WHERE employee_id=?";
+        $empStmt = $conn->prepare($empSql);
+        $empStmt->bind_param(
+            "sssssssssi",
+            $employee_number, $first_name, $middle_name, $last_name,
+            $employment_type, $position, $office, $date_hired, $status,
+            $empId
+        );
+        $empStmt->execute();
+        $empStmt->close();
     } else {
-        // Likely constraint error or DB issue
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Failed to add HR. Please try again.']);
+        // ── Insert new employee ──
+        $empSql = "INSERT INTO employees 
+                      (employee_number, first_name, middle_name, last_name, employment_type, position, office, email, date_hired, status) 
+                   VALUES (?,?,?,?,?,?,?,?,?,?)";
+        $empStmt = $conn->prepare($empSql);
+        $empStmt->bind_param(
+            "ssssssssss",
+            $employee_number,$first_name,$middle_name,$last_name,
+            $employment_type,$position,$office,$email,$date_hired,$status
+        );
+        $empStmt->execute();
+        $empId = $empStmt->insert_id;
+        $empStmt->close();
     }
-    $stmt->close();
-} catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error.']);
-    // You can log $e->getMessage() to a server log if you maintain one.
-    // error_log('add_hr.php error: ' . $e->getMessage());
-}
 
-$conn->close();
+    // ── 2. Check if user already exists with this email ──
+    $userId = null;
+    $userCheck = $conn->prepare("SELECT user_id FROM users WHERE email=? LIMIT 1");
+    $userCheck->bind_param("s", $email);
+    $userCheck->execute();
+    $userCheck->bind_result($userId);
+    $userCheck->fetch();
+    $userCheck->close();
+
+    if ($userId) {
+        // ── Update existing user ──
+        if ($password !== '') {
+            $hashed = password_hash($password,PASSWORD_DEFAULT);
+            $userSql = "UPDATE users 
+                           SET username=?, password=?, role='hr', status='active', employee_id=? 
+                         WHERE user_id=?";
+            $userStmt = $conn->prepare($userSql);
+            $userStmt->bind_param("ssii", $username,$hashed,$empId,$userId);
+        } else {
+            $userSql = "UPDATE users 
+                           SET username=?, role='hr', status='active', employee_id=? 
+                         WHERE user_id=?";
+            $userStmt = $conn->prepare($userSql);
+            $userStmt->bind_param("sii", $username,$empId,$userId);
+        }
+        $userStmt->execute();
+        $userStmt->close();
+    } else {
+        // ── Insert new user ──
+        if (!$password) {
+            throw new Exception("Password required for new user.");
+        }
+        $hashed = password_hash($password,PASSWORD_DEFAULT);
+        $role   = 'hr';
+        $ustatus = 'active';
+
+        $userSql = "INSERT INTO users (username,password,email,role,employee_id,status) 
+                    VALUES (?,?,?,?,?,?)";
+        $userStmt = $conn->prepare($userSql);
+        $userStmt->bind_param("ssssis",$username,$hashed,$email,$role,$empId,$ustatus);
+        $userStmt->execute();
+        $userStmt->close();
+    }
+
+    $conn->commit();
+    echo json_encode(['success'=>true,'message'=>'HR record saved successfully.']);
+
+} catch (Throwable $th) {
+    $conn->rollback();
+    http_response_code(500);
+    echo json_encode(['success'=>false,'message'=>'Server error: '.$th->getMessage()]);
+    exit();
+}
