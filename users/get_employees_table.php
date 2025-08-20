@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once '../config/database.php';
 
 // Search filter
-$search = trim($_GET['search'] ?? '');
+$search = trim($_GET['q'] ?? '');
 
 // Base query
 $sql = "SELECT employee_id, employee_number, first_name, middle_name, last_name, employment_type, position, office, email, date_hired, status 
@@ -27,10 +27,7 @@ $sql .= " ORDER BY employee_number ASC";
 $result = $conn->query($sql);
 ?>
 
-<!-- Search bar -->
-<div class="mb-3">
-  <input type="text" id="employeeSearch" class="form-control" placeholder="Search by employee number, name, or office...">
-</div>
+
 
 <!-- Table -->
 <div class="table-responsive">

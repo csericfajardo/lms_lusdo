@@ -141,6 +141,14 @@ $stmt->close();
 
 <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#addEmployeeModal">Add Employee</button>
 
+<!-- Search bar (fixed, not replaced by AJAX) -->
+<div class="mb-3">
+  <input type="text" id="employeeSearch" class="form-control" 
+         placeholder="Search by employee number, name, or office..." 
+         list="employeeSuggestions">
+  <datalist id="employeeSuggestions"></datalist>
+</div>
+
 <div id="employeesTableContainer">
     <?php include '../users/get_employees_table.php'; ?>
 </div>

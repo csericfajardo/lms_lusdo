@@ -72,10 +72,15 @@ function reloadEmployeeDetails(employeeId) {
 }
 
 function loadEmployeesTable(q = "") {
+  // show loader while fetching
+  $("#employeesTableContainer").html('<div class="loader"></div>');
+
   $.get("/depedlu_lms/users/get_employees_table.php", { q }, function (data) {
     $("#employeesTableContainer").html(data).show();
     $("#employeeDetailsContainer").hide().empty();
-  }).fail(() => alert("Failed to load employees."));
+  }).fail(() => {
+    $("#employeesTableContainer").html("<p class='text-danger text-center'>Failed to load employees.</p>");
+  });
 }
 
 // ------------ Initialization ------------
@@ -242,21 +247,30 @@ $(document).ready(function () {
   });
 
   // Submit edit leave application
-  $(document).on("submit", "#editLeaveApplicationForm", function (e) {
-    e.preventDefault();
-    $.post(
-      "/depedlu_lms/users/update_leave_application.php",
-      $(this).serialize(),
-      (res) => {
-        if (res.success) {
-          $("#viewLeaveModal").modal("hide");
-          loadLeaveApplicationsTable($("#filterStatus").val() || "");
-          alert("Application updated.");
-        } else alert(res.message || "Update failed.");
-      },
-      "json"
-    ).fail(() => alert("Error saving changes."));
-  });
+  // Submit edit leave application
+$(document).on("submit", "#editLeaveApplicationForm", function (e) {
+  e.preventDefault();
+  $.post(
+    "/depedlu_lms/users/update_leave_application.php",
+    $(this).serialize(),
+    (res) => {
+      if (res.success) {
+        $("#viewLeaveModal").modal("hide");
+        // keep Manage Leave tab in sync (already in your code)
+        loadLeaveApplicationsTable($("#filterStatus").val() || "");
+
+        // NEW: also refresh the employee-specific table if details panel is open
+        refreshEmployeeLeaveAppsIfOpen();
+
+        alert("Application updated.");
+      } else {
+        alert(res.message || "Update failed.");
+      }
+    },
+    "json"
+  ).fail(() => alert("Error saving changes."));
+});
+
 
   // ------------------------
   // 1) Open initial setup modal
@@ -588,17 +602,25 @@ $(document).ready(function () {
   }, 200);
 
   // --- live search: update table + suggestions as the user types ---
-  $(document).on(
-    "input",
-    "#employeeSearch",
-    debounce(function () {
-      const raw = $(this).val().trim();
-      // If user selected from datalist "123 — Name — Office", still search by it;
-      // backend matches across number, name, and office.
-      loadEmployeesTable(raw);
+  // --- live search: update table + suggestions as the user types ---
+$(document).on(
+  "input",
+  "#employeeSearch",
+  debounce(function () {
+    const raw = $(this).val().trim();
+
+    // always reload the employees table, even if input is empty
+    loadEmployeesTable(raw);
+
+    // suggestions: only show when typing something
+    if (raw) {
       fetchEmployeeSuggestions(raw);
-    }, 250)
-  );
+    } else {
+      $("#employeeSuggestions").empty();
+    }
+  }, 150) // you can keep debounce short (150ms) for live feel
+);
+
 
   // When Employees tab first opens, ensure search is applied (blank = all)
   $(document).on("click", "a[onclick*=\"showTab('employees')\"]", function () {
@@ -695,6 +717,33 @@ $(document).ready(function () {
   // poll + initial
   setInterval(refreshNotifications, 15000);
   refreshNotifications();
+
+  // --- Refresh the employee's Leave Applications table (AJAX) ---
+function refreshEmployeeLeaveAppsIfOpen() {
+  const $wrap = $("#employeeDetailsContainer");
+  if (!$wrap.is(":visible")) return; // only if details panel is open
+
+  const empId = $wrap.find("#current_employee_id").val();
+  if (!empId) return;
+
+  // optional loader if you added .loader CSS
+  $("#employeeLeaveAppsContainer").html('<div class="loader"></div>');
+
+  $.get("/depedlu_lms/users/get_employee_leave_applications_table.php",
+    { employee_id: empId }
+  )
+    .done(function (html) {
+      $("#employeeLeaveAppsContainer").html(html);
+    })
+    .fail(function () {
+      $("#employeeLeaveAppsContainer").html(
+        "<p class='text-danger'>Failed to refresh leave applications.</p>"
+      );
+    });
+}
+
+
+
 }); // end of $(document).ready()
 
 // Sidebar toggle

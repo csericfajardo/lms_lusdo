@@ -331,6 +331,23 @@ h4{ font-size:1.05rem; font-weight: 600; }
 .employee-details table tr:last-child th,
 .employee-details table tr:last-child td{ border-bottom: none; }
 
+.loader {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+
 /* Notifications */
 #notifBadge{ min-width:20px; }
 #notificationModal .modal-content{ box-shadow: 0 2px 8px rgba(0,0,0,.08); }

@@ -68,8 +68,6 @@ $sqlCredits = "
     END,
     lt.name
 ";
-
-
 $stmtCredits = $conn->prepare($sqlCredits);
 $stmtCredits->bind_param("i", $employee_id);
 $stmtCredits->execute();
@@ -95,8 +93,6 @@ $sqlCto = "
     AND balance > 0
   ORDER BY earned_at DESC
 ";
-
-
 $stmtCto = $conn->prepare($sqlCto);
 $stmtCto->bind_param("i", $employee_id);
 $stmtCto->execute();
@@ -111,34 +107,35 @@ $stmtCto->close();
 <!-- Employee Personal Details -->
 <div class="employee-details p-4 mb-4 bg-white rounded shadow-sm">
   <h4 class="mb-3">Personal Details</h4>
-  <!-- Action buttons (Edit / Delete) -->
-<div class="d-flex justify-content-end mb-2 action-buttons">
-  <button
-    class="btn btn-warning btn-sm mr-2 edit-btn"
-    title="Edit employee"
-    data-id="<?= (int)$emp['employee_id'] ?>"
-    data-employee_number="<?= htmlspecialchars($emp['employee_number'], ENT_QUOTES) ?>"
-    data-first_name="<?= htmlspecialchars($emp['first_name'], ENT_QUOTES) ?>"
-    data-middle_name="<?= htmlspecialchars($emp['middle_name'] ?? '', ENT_QUOTES) ?>"
-    data-last_name="<?= htmlspecialchars($emp['last_name'], ENT_QUOTES) ?>"
-    data-employment_type="<?= htmlspecialchars($emp['employment_type'], ENT_QUOTES) ?>"
-    data-position="<?= htmlspecialchars($emp['position'], ENT_QUOTES) ?>"
-    data-office="<?= htmlspecialchars($emp['office'], ENT_QUOTES) ?>"
-    data-email="<?= htmlspecialchars($emp['email'], ENT_QUOTES) ?>"
-    data-date_hired="<?= htmlspecialchars($emp['date_hired'], ENT_QUOTES) ?>"
-    data-status="<?= htmlspecialchars($emp['status'], ENT_QUOTES) ?>"
-  >
-    Edit
-  </button>
 
-  <button
-    class="btn btn-danger btn-sm delete-btn"
-    title="Delete employee"
-    data-id="<?= (int)$emp['employee_id'] ?>"
-  >
-    Delete
-  </button>
-</div>
+  <!-- Action buttons (Edit / Delete) -->
+  <div class="d-flex justify-content-end mb-2 action-buttons">
+    <button
+      class="btn btn-warning btn-sm mr-2 edit-btn"
+      title="Edit employee"
+      data-id="<?= (int)$emp['employee_id'] ?>"
+      data-employee_number="<?= htmlspecialchars($emp['employee_number'], ENT_QUOTES) ?>"
+      data-first_name="<?= htmlspecialchars($emp['first_name'], ENT_QUOTES) ?>"
+      data-middle_name="<?= htmlspecialchars($emp['middle_name'] ?? '', ENT_QUOTES) ?>"
+      data-last_name="<?= htmlspecialchars($emp['last_name'], ENT_QUOTES) ?>"
+      data-employment_type="<?= htmlspecialchars($emp['employment_type'], ENT_QUOTES) ?>"
+      data-position="<?= htmlspecialchars($emp['position'], ENT_QUOTES) ?>"
+      data-office="<?= htmlspecialchars($emp['office'], ENT_QUOTES) ?>"
+      data-email="<?= htmlspecialchars($emp['email'], ENT_QUOTES) ?>"
+      data-date_hired="<?= htmlspecialchars($emp['date_hired'], ENT_QUOTES) ?>"
+      data-status="<?= htmlspecialchars($emp['status'], ENT_QUOTES) ?>"
+    >
+      Edit
+    </button>
+
+    <button
+      class="btn btn-danger btn-sm delete-btn"
+      title="Delete employee"
+      data-id="<?= (int)$emp['employee_id'] ?>"
+    >
+      Delete
+    </button>
+  </div>
 
   <table class="table table-borderless mb-0">
     <tbody>
@@ -293,7 +290,7 @@ $stmtCto->close();
       <div class="leave-credit-box add-credit-box setup-leave-box"
            data-employee-id="<?= $employee_id ?>"
            data-leave-type-id="12"
-           title="Add Compensatory Time‑Off">
+           title="Add Compensatory Time-Off">
         <h5 class="m-0">+</h5>
         <small>Add CTO</small>
       </div>
@@ -317,13 +314,24 @@ $stmtCto->close();
       <div class="leave-credit-box add-credit-box setup-leave-box"
            data-employee-id="<?= $employee_id ?>"
            data-leave-type-id="12"
-           title="Add Compensatory Time‑Off">
+           title="Add Compensatory Time-Off">
         <h5 class="m-0">+</h5>
         <small>Add CTO</small>
       </div>
     <?php endif; ?>
 
   </div>
+</div>
+
+<!-- Hidden current employee id for AJAX refresh -->
+<input type="hidden" id="current_employee_id" value="<?= (int)$employee_id ?>">
+
+<!-- Leave Applications (employee-specific) -->
+<div id="employeeLeaveAppsContainer" class="mb-4">
+  <?php
+    // Initial server-side render; keeps view consistent with AJAX refresh endpoint
+    include __DIR__ . '/get_employee_leave_applications_table.php';
+  ?>
 </div>
 
 <!-- Leave Credit Action Modal -->
@@ -385,3 +393,4 @@ $stmtCto->close();
     </form>
   </div>
 </div>
+<?php

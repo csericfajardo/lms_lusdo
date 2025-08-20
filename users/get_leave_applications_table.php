@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 
 $statusFilter = $_GET['status'] ?? '';
 
-// Base query
+// Query: fetch with approver info via users → employees
 $sql = "
   SELECT 
     la.application_id, 
@@ -17,7 +17,9 @@ $sql = "
     END AS leave_type,
     la.number_of_days, 
     la.status, 
-    la.created_at
+    la.created_at,
+    la.approved_by,
+    CONCAT(hrEmp.first_name, ' ', hrEmp.last_name) AS approver_name
   FROM leave_applications la
   JOIN employees e ON la.employee_id = e.employee_id
   JOIN leave_types lt ON la.leave_type_id = lt.leave_type_id
@@ -26,9 +28,13 @@ $sql = "
    AND d.field_name = 'cto_id'
   LEFT JOIN cto_earnings ce
     ON ce.cto_id = CAST(d.field_value AS UNSIGNED)
+  LEFT JOIN users hrUser
+    ON hrUser.user_id = la.approved_by
+  LEFT JOIN employees hrEmp
+    ON hrEmp.employee_id = hrUser.employee_id
 ";
 
-// Add status filter if needed
+// Add status filter if present
 if (!empty($statusFilter)) {
     $sql .= " WHERE la.status = ?";
     $stmt = $conn->prepare($sql . " ORDER BY la.created_at DESC");
@@ -48,6 +54,7 @@ echo '<thead>
           <th>Leave Type</th>
           <th>Days</th>
           <th>Status</th>
+          <th>Approved By</th>
           <th>Filed Date</th>
           <th>Actions</th>
         </tr>
@@ -60,9 +67,9 @@ while ($row = $result->fetch_assoc()) {
     $leaveType       = htmlspecialchars($row['leave_type']);
     $days            = (float)$row['number_of_days'];
     $status          = htmlspecialchars($row['status']);
-    // Show both date + time
     $filedDate       = date("M j, Y g:ia", strtotime($row['created_at']));
     $statusClass     = strtolower($row['status']);
+    $approverDisplay = htmlspecialchars($row['approver_name'] ?? '');
 
     echo "<tr>
             <td>{$applicationId}</td>
@@ -70,6 +77,7 @@ while ($row = $result->fetch_assoc()) {
             <td>{$leaveType}</td>
             <td>{$days}</td>
             <td class='status-cell {$statusClass}' data-application-id='{$applicationId}'>{$status}</td>
+            <td>{$approverDisplay}</td>
             <td>{$filedDate}</td>
             <td>
               <button 
