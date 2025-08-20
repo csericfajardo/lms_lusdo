@@ -66,17 +66,28 @@ while ($row = $result->fetch_assoc()) {
     $employeeDisplay = htmlspecialchars("{$row['employee_number']} - {$row['employee_name']}");
     $leaveType       = htmlspecialchars($row['leave_type']);
     $days            = (float)$row['number_of_days'];
-    $status          = htmlspecialchars($row['status']);
+    $status          = $row['status'];
     $filedDate       = date("M j, Y g:ia", strtotime($row['created_at']));
-    $statusClass     = strtolower($row['status']);
-    $approverDisplay = htmlspecialchars($row['approver_name'] ?? '');
+
+    // Bootstrap badge color mapping
+    $badgeClass = 'secondary';
+    if ($status === 'Approved') $badgeClass = 'success';
+    elseif ($status === 'Pending') $badgeClass = 'warning';
+    elseif ($status === 'Rejected') $badgeClass = 'danger';
+    elseif ($status === 'Cancelled') $badgeClass = 'dark';
+
+    // Approver display: only if Approved
+    $approverDisplay = '—';
+    if ($status === 'Approved' && !empty($row['approver_name'])) {
+        $approverDisplay = htmlspecialchars($row['approver_name']);
+    }
 
     echo "<tr>
             <td>{$applicationId}</td>
             <td>{$employeeDisplay}</td>
             <td>{$leaveType}</td>
             <td>{$days}</td>
-            <td class='status-cell {$statusClass}' data-application-id='{$applicationId}'>{$status}</td>
+            <td><span class='badge badge-{$badgeClass}'>" . htmlspecialchars($status) . "</span></td>
             <td>{$approverDisplay}</td>
             <td>{$filedDate}</td>
             <td>

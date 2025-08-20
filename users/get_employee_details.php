@@ -137,6 +137,7 @@ $stmtCto->close();
     </button>
   </div>
 
+<div class="table-responsive">
   <table class="table table-borderless mb-0">
     <tbody>
       <tr>
@@ -169,6 +170,7 @@ $stmtCto->close();
       </tr>
     </tbody>
   </table>
+</div>
 </div>
 
 <!-- Setup Leave Credit Button -->

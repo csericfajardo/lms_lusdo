@@ -195,6 +195,7 @@ $(document).ready(function () {
   // View Employee Details
   $(document).on("click", ".view-employee-btn", function () {
     reloadEmployeeDetails($(this).data("id"));
+    document.getElementById("employeeSearch").style.display = "none";
   });
 
   // Back to list
@@ -202,6 +203,7 @@ $(document).ready(function () {
     $("#employeeDetailsContainer").hide().empty();
     $("#employeesTableContainer").show();
     $("#employees h2, #employees > .btn-primary").show();
+      document.getElementById("employeeSearch").style.display = "block";
   });
 
   // ---- Leave Credit & Application Handlers ----
@@ -624,6 +626,7 @@ $(document).on(
 
   // When Employees tab first opens, ensure search is applied (blank = all)
   $(document).on("click", "a[onclick*=\"showTab('employees')\"]", function () {
+    document.getElementById("employeeSearch").style.display = "block";
     const q = $("#employeeSearch").val().trim();
     loadEmployeesTable(q);
   });

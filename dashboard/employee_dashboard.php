@@ -285,7 +285,6 @@ function appDateRange(array $r): string {
             <th>Dates</th>
             <th>Days</th>
             <th>Status</th>
-            <th>Approved By</th>
             <th>Filed</th>
             <th>Updated</th>
           </tr>
@@ -311,7 +310,7 @@ function appDateRange(array $r): string {
                   ?>
                   <span class="badge badge-<?= $badge ?>"><?= htmlspecialchars($status) ?></span>
                 </td>
-                <td><?= htmlspecialchars(approverDisplayName($row)) ?></td>
+     
                 <td><?= htmlspecialchars(date('M d, Y', strtotime($row['created_at']))) ?></td>
                 <td><?= htmlspecialchars(date('M d, Y', strtotime($row['updated_at']))) ?></td>
               </tr>

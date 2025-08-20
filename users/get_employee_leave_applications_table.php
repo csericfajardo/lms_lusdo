@@ -4,11 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . '/../config/database.php';
 
-/**
- * Returns ONLY the HTML table of leave applications for one employee.
- * Can be included server-side (inherits $employee_id) or fetched via AJAX (?employee_id=123).
- */
-
 // --- Access control: HR only ---
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'hr') {
     http_response_code(403);
@@ -27,7 +22,7 @@ if ($employee_id <= 0) {
     return;
 }
 
-// --- Optional: status filter (?status=Pending|Approved|Rejected|Cancelled) ---
+// --- Optional: status filter ---
 $statusFilter = '';
 $params = [$employee_id];
 $types  = 'i';
@@ -41,7 +36,7 @@ if (isset($_GET['status']) && $_GET['status'] !== '') {
     }
 }
 
-// --- Query: pull common date fields from leave_application_details (pivot) ---
+// --- Query: pull with approver info ---
 $sql = "
   SELECT
     la.application_id,
@@ -50,6 +45,8 @@ $sql = "
     la.number_of_days,
     la.status,
     la.created_at,
+    la.approved_by,
+    CONCAT(hrEmp.first_name, ' ', hrEmp.last_name) AS approver_name,
     MAX(CASE WHEN lad.field_name = 'date_from'      THEN lad.field_value END) AS date_from,
     MAX(CASE WHEN lad.field_name = 'date_to'        THEN lad.field_value END) AS date_to,
     MAX(CASE WHEN lad.field_name = 'effective_date' THEN lad.field_value END) AS effective_date
@@ -58,9 +55,13 @@ $sql = "
     ON lt.leave_type_id = la.leave_type_id
   LEFT JOIN leave_application_details lad
     ON lad.application_id = la.application_id
+  LEFT JOIN users hrUser
+    ON hrUser.user_id = la.approved_by
+  LEFT JOIN employees hrEmp
+    ON hrEmp.employee_id = hrUser.employee_id
   WHERE la.employee_id = ?
   $statusFilter
-  GROUP BY la.application_id, la.leave_type_id, lt.name, la.number_of_days, la.status, la.created_at
+  GROUP BY la.application_id, la.leave_type_id, lt.name, la.number_of_days, la.status, la.created_at, la.approved_by, hrEmp.first_name, hrEmp.last_name
   ORDER BY la.created_at DESC
 ";
 
@@ -89,6 +90,7 @@ function fmt_date($val, $fmt = 'Y-m-d') {
         <th>To</th>
         <th>Days</th>
         <th>Status</th>
+        <th>Approved By</th>
         <th>Filed</th>
         <th>Actions</th>
       </tr>
@@ -96,19 +98,37 @@ function fmt_date($val, $fmt = 'Y-m-d') {
     <tbody>
       <?php if ($res->num_rows > 0): ?>
         <?php while ($row = $res->fetch_assoc()):
-          // Prefer date_from/date_to; fall back to effective_date if range not applicable
           $from = $row['date_from'] ?: $row['effective_date'] ?: '';
           $to   = $row['date_to']   ?: $row['effective_date'] ?: '';
+
+          // Status badge
+          $status = $row['status'];
+          $badgeClass = 'secondary';
+          if ($status === 'Approved') $badgeClass = 'success';
+          elseif ($status === 'Pending') $badgeClass = 'warning';
+          elseif ($status === 'Rejected') $badgeClass = 'danger';
+          elseif ($status === 'Cancelled') $badgeClass = 'dark';
+
+          // Approver display
+          $approverDisplay = '—';
+          if ($status === 'Approved' && !empty($row['approver_name'])) {
+              $approverDisplay = htmlspecialchars($row['approver_name']);
+          }
         ?>
           <tr>
-            <td><?= (int)$row['application_id'] ?></td>
-            <td><?= htmlspecialchars($row['leave_type'], ENT_QUOTES) ?></td>
-            <td><?= $from ? htmlspecialchars(fmt_date($from)) : '—' ?></td>
-            <td><?= $to   ? htmlspecialchars(fmt_date($to))   : '—' ?></td>
-            <td><?= htmlspecialchars($row['number_of_days'], ENT_QUOTES) ?></td>
-            <td><?= htmlspecialchars($row['status'], ENT_QUOTES) ?></td>
-            <td><?= htmlspecialchars(fmt_date($row['created_at'], 'Y-m-d H:i'), ENT_QUOTES) ?></td>
-            <td>
+            <td data-label="ID"><?= (int)$row['application_id'] ?></td>
+            <td data-label="Type"><?= htmlspecialchars($row['leave_type'], ENT_QUOTES) ?></td>
+            <td data-label="From"><?= $from ? htmlspecialchars(fmt_date($from)) : '—' ?></td>
+            <td data-label="To"><?= $to   ? htmlspecialchars(fmt_date($to))   : '—' ?></td>
+            <td data-label="Days"><?= htmlspecialchars($row['number_of_days'], ENT_QUOTES) ?></td>
+            <td data-label="Status">
+              <span class="badge badge-<?= $badgeClass ?>">
+                <?= htmlspecialchars($status) ?>
+              </span>
+            </td>
+            <td data-label="Approved By"><?= $approverDisplay ?></td>
+            <td data-label="Filed"><?= htmlspecialchars(fmt_date($row['created_at'], 'Y-m-d H:i'), ENT_QUOTES) ?></td>
+            <td data-label="Actions">
               <button
                 class="btn btn-sm btn-info view-application-btn"
                 data-application-id="<?= (int)$row['application_id'] ?>">
@@ -119,7 +139,7 @@ function fmt_date($val, $fmt = 'Y-m-d') {
         <?php endwhile; ?>
       <?php else: ?>
         <tr>
-          <td colspan="8" class="text-center">No leave applications found.</td>
+          <td colspan="9" class="text-center">No leave applications found.</td>
         </tr>
       <?php endif; ?>
     </tbody>
